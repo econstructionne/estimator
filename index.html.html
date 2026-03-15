@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Frame Estimator — Ebbers Construction</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
+:root{--white:#fff;--off-white:#f7f7f5;--light-gray:#eae9e6;--mid-gray:#b8b8b4;--dark-gray:#555;--near-black:#1a1a1a;--black:#0d0d0d;--accent:#c8a44e;--accent-light:#dfc475;--accent-dark:#a8853a;--error:#b8332a;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);--r:8px;--rlg:14px;--tr:.25s cubic-bezier(.19,1,.22,1);--fb:'DM Sans',sans-serif;--fd:'Instrument Serif',serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--fb);color:var(--near-black);background:var(--off-white);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+.site-header{background:var(--black);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--accent)}
+.logo-area{display:flex;align-items:center;gap:14px}
+.logo-area img{height:44px;width:auto;filter:brightness(0) invert(1)}
+.logo-text{font-family:var(--fd);font-size:1.4rem;color:#fff}
+.logo-text span{color:var(--accent)}
+.header-contact{font-size:.85rem;color:var(--mid-gray);display:flex;align-items:center;gap:6px}
+.header-contact a{color:var(--accent-light);text-decoration:none}
+.app-container{display:flex;min-height:calc(100vh - 68px)}
+.sidebar{width:230px;background:var(--white);border-right:1px solid var(--light-gray);padding:16px 0;flex-shrink:0;position:sticky;top:68px;height:calc(100vh - 68px);overflow-y:auto;z-index:50}
+.sidebar-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:var(--mid-gray);padding:14px 20px 6px;font-weight:600}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;border:none;background:none;font-family:var(--fb);font-size:.95rem;color:var(--dark-gray);cursor:pointer;transition:all var(--tr);text-align:left;position:relative}
+.nav-btn::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--accent);border-radius:0 3px 3px 0;opacity:0;transition:opacity var(--tr)}
+.nav-btn:hover{background:var(--off-white);color:var(--near-black)}
+.nav-btn.active{color:var(--near-black);font-weight:600;background:var(--off-white)}
+.nav-btn.active::before{opacity:1}
+.nav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.main-content{flex:1;padding:36px 48px 80px;max-width:1100px}
+.panel{display:none;animation:fadeUp .35s ease-out}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel-header{margin-bottom:28px}
+.panel-header h2{font-family:var(--fd);font-size:2.2rem;font-weight:400;color:var(--near-black);line-height:1.2}
+.panel-header p{color:var(--dark-gray);font-size:1rem;margin-top:4px}
+.section-card{background:var(--white);border:1px solid var(--light-gray);border-radius:var(--rlg);padding:28px;margin-bottom:22px;box-shadow:var(--shadow-sm)}
+.section-card h3{font-size:1.05rem;font-weight:600;color:var(--near-black);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.section-card h3 .badge{font-size:.7rem;background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:.85rem;font-weight:500;color:var(--dark-gray)}
+.form-group label .unit{font-weight:400;color:var(--mid-gray)}
+input[type="number"],input[type="text"],select{font-family:var(--fb);font-size:1rem;padding:11px 14px;border:1px solid var(--light-gray);border-radius:var(--r);background:var(--white);color:var(--near-black);transition:border-color var(--tr),box-shadow var(--tr);width:100%;outline:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,164,78,.15)}
+input[disabled]{background:var(--off-white);color:var(--dark-gray)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--light-gray)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row>label{font-size:.95rem;color:var(--near-black);cursor:pointer;flex:1}
+.toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0;cursor:pointer}
+.toggle-switch input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:2;margin:0}
+.toggle-slider{position:absolute;inset:0;background:var(--light-gray);border-radius:26px;transition:background var(--tr);pointer-events:none}
+.toggle-slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform var(--tr);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(22px)}
+.color-grid{display:flex;flex-wrap:wrap;gap:7px}
+.color-swatch{width:40px;height:40px;border-radius:var(--r);border:2px solid transparent;cursor:pointer;transition:all var(--tr);position:relative}
+.color-swatch:hover{transform:scale(1.15);z-index:2}
+.color-swatch.selected{border-color:var(--near-black);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--near-black);transform:scale(1.1)}
+.color-swatch[title]::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--near-black);color:#fff;font-size:.75rem;padding:4px 10px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+.color-swatch:hover::after{opacity:1}
+.selected-color-label{font-size:.88rem;color:var(--dark-gray);margin-top:8px;font-style:italic}
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.preview-card{border:2px solid var(--light-gray);border-radius:var(--rlg);padding:14px;cursor:pointer;transition:all var(--tr);text-align:center;background:var(--white)}
+.preview-card:hover{border-color:var(--mid-gray);box-shadow:var(--shadow-md)}
+.preview-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.preview-card .preview-img{width:100%;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;overflow:hidden;border-radius:var(--r);background:var(--off-white)}
+.preview-card .preview-name{font-size:.9rem;font-weight:600;color:var(--near-black)}
+.preview-card .preview-desc{font-size:.78rem;color:var(--dark-gray);margin-top:2px}
+.item-list{display:flex;flex-direction:column;gap:10px}
+.item-row{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--off-white);border-radius:var(--r);border:1px solid var(--light-gray);flex-wrap:wrap}
+.item-row select,.item-row input{flex:1;min-width:100px}
+.btn-remove{background:none;border:none;color:var(--error);cursor:pointer;font-size:1.2rem;padding:4px;line-height:1;opacity:.6;transition:opacity var(--tr)}
+.btn-remove:hover{opacity:1}
+.btn-add{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:1px dashed var(--mid-gray);border-radius:var(--r);background:none;font-family:var(--fb);font-size:.92rem;color:var(--dark-gray);cursor:pointer;transition:all var(--tr);margin-top:10px}
+.btn-add:hover{border-color:var(--accent);color:var(--accent-dark);background:rgba(200,164,78,.05)}
+.building-preview-wrapper{background:var(--white);border:1px solid var(--light-gray);border-radius:var(--rlg);padding:24px;margin-bottom:22px;box-shadow:var(--shadow-sm)}
+.building-canvas{width:100%;max-height:500px;display:block;margin:0 auto}
+.preview-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.preview-tab{padding:8px 16px;border:1px solid var(--light-gray);border-radius:var(--r);background:none;font-family:var(--fb);font-size:.88rem;color:var(--dark-gray);cursor:pointer;transition:all var(--tr)}
+.preview-tab:hover{background:var(--off-white)}
+.preview-tab.active{background:var(--near-black);color:#fff;border-color:var(--near-black)}
+.estimate-section{margin-bottom:24px}
+.estimate-section h4{font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-dark);padding-bottom:8px;border-bottom:2px solid var(--accent);margin-bottom:0}
+.estimate-table{width:100%;border-collapse:collapse;font-size:.92rem}
+.estimate-table th{text-align:left;padding:10px 12px;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dark-gray);border-bottom:1px solid var(--light-gray);font-weight:600}
+.estimate-table td{padding:10px 12px;border-bottom:1px solid var(--light-gray);color:var(--near-black)}
+.estimate-table tr:last-child td{border-bottom:none}
+.estimate-table .text-right{text-align:right}
+.estimate-table .section-total td{font-weight:600;background:var(--off-white);border-top:2px solid var(--light-gray)}
+.grand-total{background:var(--near-black);color:#fff;padding:24px 28px;border-radius:var(--rlg);margin-top:24px;display:flex;justify-content:space-between;align-items:center}
+.grand-total .total-label{font-size:1.15rem;font-weight:500}
+.grand-total .total-amount{font-family:var(--fd);font-size:2.2rem}
+.cost-sqft{font-size:.92rem;color:var(--mid-gray);margin-top:4px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:var(--near-black);color:#fff;border:none;border-radius:var(--r);font-family:var(--fb);font-size:1rem;font-weight:500;cursor:pointer;transition:all var(--tr)}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:var(--white);color:var(--near-black);border:1px solid var(--light-gray);border-radius:var(--r);font-family:var(--fb);font-size:1rem;font-weight:500;cursor:pointer;transition:all var(--tr)}
+.btn-secondary:hover{border-color:var(--mid-gray);box-shadow:var(--shadow-sm)}
+.btn-group{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.price-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--off-white);border-radius:var(--r);border:1px solid var(--light-gray)}
+.price-item .price-label{font-size:.9rem;color:var(--near-black)}
+.price-item input{width:100px;text-align:right;font-size:.92rem;padding:8px 10px}
+.spec-locked{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--accent-dark);background:rgba(200,164,78,.1);padding:3px 10px;border-radius:4px;font-weight:500}
+.info-card{background:var(--white);border:1px solid var(--light-gray);border-radius:var(--rlg);padding:28px;margin-bottom:22px;display:flex;gap:24px;align-items:flex-start}
+.info-card .info-illustration{width:160px;height:140px;flex-shrink:0;background:var(--off-white);border-radius:var(--r);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.info-card .info-body h4{font-size:1.1rem;font-weight:600;margin-bottom:6px}
+.info-card .info-body p{font-size:.95rem;color:var(--dark-gray);line-height:1.6;margin-bottom:8px}
+.info-card .info-body ul{margin:0;padding-left:20px;font-size:.92rem;color:var(--dark-gray);line-height:1.7}
+.client-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.site-footer{background:var(--near-black);color:var(--mid-gray);padding:22px 28px;font-size:.85rem;text-align:center;border-top:2px solid var(--accent)}
+.site-footer a{color:var(--accent-light);text-decoration:none}
+.mobile-menu-btn{display:none;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);background:none;color:#fff;font-size:1.5rem;cursor:pointer;flex-shrink:0}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
+.overlay.open{display:block}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--light-gray);z-index:200;overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:0 -2px 10px rgba(0,0,0,.08)}
+.mobile-nav-inner{display:flex;min-width:max-content;padding:4px 8px}
+.mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;border:none;background:none;font-family:var(--fb);font-size:.68rem;color:var(--dark-gray);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.mobile-nav-btn .mnav-icon{font-size:1.2rem;line-height:1}
+.mobile-nav-btn.active{color:var(--accent-dark);font-weight:600}
+@media(max-width:768px){
+.sidebar{display:none;position:fixed;top:68px;left:0;width:260px;height:calc(100vh - 68px);background:var(--white);box-shadow:var(--shadow-lg);z-index:200}
+.sidebar.open{display:block}
+.mobile-menu-btn{display:flex!important}
+.mobile-nav{display:block}
+.main-content{padding:24px 18px 90px;max-width:100%}
+.form-grid,.client-info-grid{grid-template-columns:1fr}
+.form-grid.cols-3{grid-template-columns:1fr 1fr}
+.preview-grid{grid-template-columns:1fr 1fr}
+.price-grid{grid-template-columns:1fr}
+.grand-total{flex-direction:column;text-align:center;gap:8px}
+.header-contact{display:none}
+.info-card{flex-direction:column}
+.info-card .info-illustration{width:100%;height:120px}
+.site-footer{padding-bottom:75px}
+}
+.header-total{display:flex;flex-direction:column;align-items:flex-end;position:relative;min-width:120px}
+.header-total .total-num{font-family:var(--fd);font-size:1.5rem;color:var(--accent-light);line-height:1.1;transition:transform .15s ease}
+.header-total .total-num.bump{transform:scale(1.12)}
+.header-total .total-label-sm{font-size:.65rem;color:var(--mid-gray);text-transform:uppercase;letter-spacing:.08em}
+.cost-float{position:absolute;right:0;font-family:var(--fb);font-size:.88rem;font-weight:600;pointer-events:none;opacity:0;white-space:nowrap;z-index:101}
+.cost-float.positive{color:#5ebd72}
+.cost-float.negative{color:#e86060}
+.cost-float.animate{animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{
+0%{opacity:1;transform:translateY(0)}
+60%{opacity:1;transform:translateY(-28px)}
+100%{opacity:0;transform:translateY(-42px)}
+}
+@media(max-width:768px){
+.header-total .total-num{font-size:1.15rem}
+}
+@media print{
+.sidebar,.site-header,.site-footer,.btn-primary,.btn-secondary,.btn-add,.btn-remove,.mobile-menu-btn,.mobile-nav{display:none!important}
+.main-content{padding:0;max-width:100%}
+.panel{display:block!important}
+.section-card{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">☰</button>
+<div class="logo-area">
+<img src="https://img1.wsimg.com/isteam/ip/34897305-07e7-4e88-85a5-cf5b253986ad/EbbersConstructionLOGO.png/:/rs=h:84,cg:true,m" alt="Ebbers Construction">
+<span class="logo-text">Post Frame <span>Estimator</span></span>
+</div>
+<div class="header-total" id="headerTotal">
+<span class="total-label-sm">Estimated Total</span>
+<span class="total-num" id="runningTotal">$0.00</span>
+</div>
+<div class="header-contact">SE Nebraska &nbsp;·&nbsp; <a href="tel:4025805977">402-580-5977</a></div>
+</header>
+<div class="overlay" id="overlay"></div>
+<div class="app-container">
+<nav class="sidebar" id="sidebar">
+<div class="sidebar-label">Configure</div>
+<button class="nav-btn active" data-panel="design"><span class="nav-icon">📐</span> Design</button>
+<button class="nav-btn" data-panel="framing"><span class="nav-icon">🪵</span> Framing</button>
+<button class="nav-btn" data-panel="roofwalls"><span class="nav-icon">🏗️</span> Roof & Walls</button>
+<button class="nav-btn" data-panel="doors"><span class="nav-icon">🚪</span> Doors & Windows</button>
+<button class="nav-btn" data-panel="colors"><span class="nav-icon">🎨</span> Steel Colors</button>
+<button class="nav-btn" data-panel="extras"><span class="nav-icon">⚡</span> Extras</button>
+<div class="sidebar-label">Output</div>
+<button class="nav-btn" data-panel="prices"><span class="nav-icon">💲</span> Prices</button>
+<button class="nav-btn" data-panel="preview"><span class="nav-icon">🏠</span> Building Preview</button>
+<button class="nav-btn" data-panel="materials"><span class="nav-icon">📦</span> Material List</button>
+<button class="nav-btn" data-panel="estimate"><span class="nav-icon">📋</span> Estimate</button>
+<button class="nav-btn" data-panel="info"><span class="nav-icon">ℹ️</span> How We Build</button>
+</nav>
+<main class="main-content" id="mainContent">
+<!-- Panels will be populated by JavaScript -->
+<div id="panelContainer"></div>
+</main>
+</div>
+<nav class="mobile-nav" id="mobileNav">
+<div class="mobile-nav-inner">
+<button class="mobile-nav-btn active" data-panel="design"><span class="mnav-icon">📐</span>Design</button>
+<button class="mobile-nav-btn" data-panel="framing"><span class="mnav-icon">🪵</span>Framing</button>
+<button class="mobile-nav-btn" data-panel="roofwalls"><span class="mnav-icon">🏗️</span>Roof</button>
+<button class="mobile-nav-btn" data-panel="doors"><span class="mnav-icon">🚪</span>Doors</button>
+<button class="mobile-nav-btn" data-panel="colors"><span class="mnav-icon">🎨</span>Colors</button>
+<button class="mobile-nav-btn" data-panel="extras"><span class="mnav-icon">⚡</span>Extras</button>
+<button class="mobile-nav-btn" data-panel="prices"><span class="mnav-icon">💲</span>Prices</button>
+<button class="mobile-nav-btn" data-panel="preview"><span class="mnav-icon">🏠</span>Preview</button>
+<button class="mobile-nav-btn" data-panel="materials"><span class="mnav-icon">📦</span>Materials</button>
+<button class="mobile-nav-btn" data-panel="estimate"><span class="mnav-icon">📋</span>Estimate</button>
+<button class="mobile-nav-btn" data-panel="info"><span class="mnav-icon">ℹ️</span>Info</button>
+</div>
+</nav>
+<footer class="site-footer">Ebbers Construction · SE Nebraska · <a href="tel:4025805977">402-580-5977</a> · <a href="https://ebbersconstruction.com">ebbersconstruction.com</a></footer>
+<script>
+/* EBBERS CONSTRUCTION v2 - inline */
+/* EBBERS CONSTRUCTION — Post Frame Estimator v2 */
+
+// ─── CORRECTED FRONTIER METAL SUPPLY COLORS ───
+// Cross-referenced with Sherwin-Williams WeatherXL standard swatches
+const FM_COLORS = [
+  { name: 'Arctic White',     hex: '#e5e4df' },
+  { name: 'Polar White',      hex: '#f2f0e6' },
+  { name: 'Light Stone',      hex: '#c4b99e' },
+  { name: 'Tan',              hex: '#b5a484' },
+  { name: 'Taupe',            hex: '#8e8272' },
+  { name: 'Ash Gray',         hex: '#8b8c88' },
+  { name: 'Charcoal Gray',    hex: '#53555a' },
+  { name: 'Charcoal',         hex: '#3d3d3d' },
+  { name: 'Black',            hex: '#222222' },
+  { name: 'Burnished Slate',  hex: '#515a50' },
+  { name: 'Cocoa Brown',      hex: '#4e3629' },
+  { name: 'Copper Metallic',  hex: '#7e5835' },
+  { name: 'Burgundy',         hex: '#5e2028' },
+  { name: 'Dark Red',         hex: '#6e2c2a' },
+  { name: 'Rural Red',        hex: '#7c3230' },
+  { name: 'Crimson',          hex: '#8b2028' },
+  { name: 'Ivy Green',        hex: '#3e5a3a' },
+  { name: 'Evergreen',        hex: '#2c4434' },
+  { name: 'Gallery Blue',     hex: '#3d5d7e' },
+  { name: 'Ocean Blue',       hex: '#2a4e6c' },
+  { name: 'Sapphire Blue',    hex: '#2e4a68' },
+  { name: 'Galvalume',        hex: '#a8a8a0' },
+  { name: 'Aged Copper',      hex: '#5e826a' },
+];
+
+// ─── PRICES ───
+const PRICES = {
+  '2x4_lf':.65,'2x6_lf':1.10,'2x8_lf':1.55,'2x12_treated_lf':3.20,'lvl_header_lf':6.50,'6x6_timber_lf':4.25,'8x8_timber_lf':8.50,'fascia_2x6_lf':1.10,
+  'pro_rib_lf':2.15,'board_batten_lf':3.75,'standing_seam_lf':5.50,'speed_lap_lf':2.00,'trim_lf':1.50,'ridge_cap_lf':2.25,
+  'concrete_yard':165,'rebar_4_20ft':12.50,'wwm_roll':120,'fiber_mesh_bag':22,'vapor_barrier_roll':65,'bracket_wetset':18,'bracket_retrofit':22,'sonotube_18':28,'sonotube_16':22,'sonotube_24':38,
+  'oh_door_10x8':850,'oh_door_10x10':1050,'oh_door_12x10':1250,'oh_door_12x12':1450,'oh_door_14x12':1750,'oh_door_16x14':2400,'oh_opener':350,
+  'walk_door_3070':450,'walk_door_6070':750,'window_3x3':185,'window_3x4':220,'window_4x4':260,
+  'bubble_wrap_sqft':.45,'r19_batt_sqft':.85,'r30_batt_sqft':1.20,'spray_closed_sqft':2.10,'spray_open_sqft':1.30,
+  'house_wrap_sqft':.18,'liner_panel_sqft':1.25,'versetta_stone_sqft':12.50,'ssd_screw_6in':.55,'x_brace_set':45,
+  'ridge_vent_lf':3.50,'eave_vent_ea':12,'gutter_6in_lf':7.50,'downspout_ea':85,'flashing_tape_roll':28,'truss_lf_span':5.50,'electrical_roughin':3500,
+  'porch_post_6x6_ea':85,'porch_post_8x8_ea':145
+};
+const PRICE_LABELS = {
+  '2x4_lf':'2×4 Lumber /LF','2x6_lf':'2×6 Lumber /LF','2x8_lf':'2×8 Lumber /LF','2x12_treated_lf':'2×12 Treated /LF','lvl_header_lf':'LVL Header /LF','6x6_timber_lf':'6×6 Timber /LF','8x8_timber_lf':'8×8 Timber /LF','fascia_2x6_lf':'2×6 Fascia /LF',
+  'pro_rib_lf':'Pro-Rib 29ga /LF','board_batten_lf':'Board & Batten 26ga /LF','standing_seam_lf':'Standing Seam /LF','speed_lap_lf':'Speed Lap /LF','trim_lf':'Trim / Flashing /LF','ridge_cap_lf':'Ridge Cap /LF',
+  'concrete_yard':'Concrete /yd³','rebar_4_20ft':'#4 Rebar 20\'','wwm_roll':'Welded Wire Mesh Roll','fiber_mesh_bag':'Fiber Mesh Bag','vapor_barrier_roll':'Vapor Barrier Roll','bracket_wetset':'Wet-Set Bracket','bracket_retrofit':'Retrofit Bracket','sonotube_18':'Sonotube 18"','sonotube_16':'Sonotube 16"','sonotube_24':'Sonotube 24"',
+  'oh_door_10x8':'OH Door 10×8','oh_door_10x10':'OH Door 10×10','oh_door_12x10':'OH Door 12×10','oh_door_12x12':'OH Door 12×12','oh_door_14x12':'OH Door 14×12','oh_door_16x14':'OH Door 16×14','oh_opener':'Door Opener',
+  'walk_door_3070':'Walk Door 3070','walk_door_6070':'Walk Door 6070','window_3x3':'Window 3×3','window_3x4':'Window 3×4','window_4x4':'Window 4×4',
+  'bubble_wrap_sqft':'Bubble Wrap /sf','r19_batt_sqft':'R-19 Batt /sf','r30_batt_sqft':'R-30 Batt /sf','spray_closed_sqft':'Spray Closed /sf','spray_open_sqft':'Spray Open /sf',
+  'house_wrap_sqft':'House Wrap /sf','liner_panel_sqft':'Liner Panel /sf','versetta_stone_sqft':'Versetta Stone /sf','ssd_screw_6in':'6" SSD Screw','x_brace_set':'X-Brace Set',
+  'ridge_vent_lf':'Ridge Vent /LF','eave_vent_ea':'Eave Vent ea','gutter_6in_lf':'Gutter 6" /LF','downspout_ea':'Downspout ea','flashing_tape_roll':'Flashing Tape Roll','truss_lf_span':'Truss /LF span','electrical_roughin':'Electrical Rough-In',
+  'porch_post_6x6_ea':'Porch Post 6×6','porch_post_8x8_ea':'Porch Post 8×8'
+};
+const PRICE_GROUPS = {
+  lumber:['2x4_lf','2x6_lf','2x8_lf','2x12_treated_lf','lvl_header_lf','6x6_timber_lf','8x8_timber_lf','fascia_2x6_lf'],
+  steel:['pro_rib_lf','board_batten_lf','standing_seam_lf','speed_lap_lf','trim_lf','ridge_cap_lf'],
+  concrete:['concrete_yard','rebar_4_20ft','wwm_roll','fiber_mesh_bag','vapor_barrier_roll','bracket_wetset','bracket_retrofit','sonotube_18','sonotube_16','sonotube_24'],
+  doors:['oh_door_10x8','oh_door_10x10','oh_door_12x10','oh_door_12x12','oh_door_14x12','oh_door_16x14','oh_opener','walk_door_3070','walk_door_6070','window_3x3','window_3x4','window_4x4'],
+  misc:['bubble_wrap_sqft','r19_batt_sqft','r30_batt_sqft','spray_closed_sqft','spray_open_sqft','house_wrap_sqft','liner_panel_sqft','versetta_stone_sqft','ssd_screw_6in','x_brace_set','ridge_vent_lf','eave_vent_ea','gutter_6in_lf','downspout_ea','flashing_tape_roll','truss_lf_span','electrical_roughin','porch_post_6x6_ea','porch_post_8x8_ea']
+};
+
+// ─── STATE ───
+const selectedColors = {roof:'Charcoal',sidewall:'Light Stone',wainscot:'Burnished Slate',trim:'Charcoal',garageDoor:'Arctic White',walkDoor:'Arctic White'};
+let ohDoors = [{size:'10x10',opener:true,style:'commercial-ribbed',wall:'front',pos:50}];
+let walkDoors = [{size:'3070',style:'steel-flush',wall:'front',pos:80}];
+let windows = [{size:'3x4',wall:'left',pos:50}];
+let previewView = 'front';
+let showFraming = false;
+
+// ─── HELPERS ───
+function val(id){return parseFloat(document.getElementById(id)?.value)||0}
+function sel(id){return document.getElementById(id)?.value||''}
+function chk(id){return document.getElementById(id)?.checked||false}
+function fmt(n){return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function getHex(name){const c=FM_COLORS.find(c=>c.name===name);return c?c.hex:'#999'}
+function el(id){return document.getElementById(id)}
+
+// ─── PANEL HTML GENERATORS ───
+function buildAllPanels(){
+  const container = el('panelContainer');
+  container.innerHTML = buildDesignPanel() + buildFramingPanel() + buildRoofWallsPanel() + buildDoorsPanel() + buildColorsPanel() + buildExtrasPanel() + buildPricesPanel() + buildPreviewPanel() + buildMaterialsPanel() + buildEstimatePanel() + buildInfoPanel();
+}
+
+function buildDesignPanel(){
+  return `<section class="panel active" id="panel-design">
+<div class="panel-header"><h2>Building Design</h2><p>Define the footprint, pitch, and profile of your building.</p></div>
+<div class="section-card"><h3>Dimensions</h3>
+<div class="form-grid">
+<div class="form-group"><label>Width <span class="unit">(endwall, ft)</span></label><input type="number" id="bldWidth" value="40" min="12" step="1"></div>
+<div class="form-group"><label>Length <span class="unit">(sidewall, 8' increments)</span></label><select id="bldLength">${[24,32,40,48,56,64,72,80,96,104,112,120].map(v=>`<option value="${v}"${v===64?' selected':''}>${v} ft</option>`).join('')}</select></div>
+<div class="form-group"><label>Eave Height <span class="unit">(ft)</span></label><select id="eaveHeight">${[10,12,14,16,18,20].map(v=>`<option value="${v}"${v===12?' selected':''}>${v} ft</option>`).join('')}</select></div>
+<div class="form-group"><label>Roof Pitch</label><select id="roofPitch">${[3,4,5,6,8].map(v=>`<option value="${v}"${v===4?' selected':''}>${v}:12</option>`).join('')}</select></div>
+</div></div>
+<div class="section-card"><h3>Roof Style</h3>
+<div class="preview-grid" id="roofStyleGrid">
+<div class="preview-card selected" data-value="gable"><div class="preview-img" id="pvRoofGable"></div><div class="preview-name">Gable</div><div class="preview-desc">Standard symmetrical</div></div>
+<div class="preview-card" data-value="single-slope"><div class="preview-img" id="pvRoofSingle"></div><div class="preview-name">Single Slope</div><div class="preview-desc">Shed / mono-pitch</div></div>
+</div><input type="hidden" id="roofStyle" value="gable"></div>
+<div class="section-card"><h3>Steel Panel Profile</h3>
+<div class="preview-grid" id="panelProfileGrid">
+<div class="preview-card selected" data-value="pro-rib"><div class="preview-img" id="pvProRib"></div><div class="preview-name">Pro-Rib</div><div class="preview-desc">29ga ribbed — standard</div></div>
+<div class="preview-card" data-value="board-batten"><div class="preview-img" id="pvBoardBatten"></div><div class="preview-name">Board & Batten</div><div class="preview-desc">26ga — no exposed fasteners</div></div>
+<div class="preview-card" data-value="standing-seam"><div class="preview-img" id="pvStandingSeam"></div><div class="preview-name">Standing Seam</div><div class="preview-desc">Hidden fastener — premium</div></div>
+</div><input type="hidden" id="panelProfile" value="pro-rib"></div>
+<div class="section-card"><h3>Wainscot</h3><div class="form-grid">
+<div class="form-group"><label>Wainscot Height <span class="unit">(ft)</span></label><select id="wainscotHt"><option value="0">None</option><option value="3" selected>3 ft (standard)</option><option value="4">4 ft</option></select></div>
+<div class="form-group"><label>Wainscot Material</label><select id="wainscotMat"><option value="steel" selected>Pro-Rib Steel</option><option value="board-batten">Board & Batten Steel</option><option value="versetta-stone">Versetta Stone</option></select></div>
+</div></div>
+<div class="section-card"><h3>Overhang</h3><div class="form-grid">
+<div class="form-group"><label>Eave Overhang <span class="unit">(in)</span></label><select id="eaveOverhang"><option value="0">None</option><option value="12" selected>12"</option><option value="18">18"</option><option value="24">24"</option></select></div>
+<div class="form-group"><label>Gable Overhang <span class="unit">(in)</span></label><select id="gableOverhang"><option value="0">None</option><option value="12" selected>12"</option><option value="18">18"</option><option value="24">24"</option></select></div>
+<div class="form-group"><label>Soffit Material</label><select id="soffitMat"><option value="pro-rib-reverse" selected>Reverse-Rolled Pro-Rib</option><option value="speed-lap">Speed Lap</option><option value="custom-soffit">Custom Soffit Panel</option></select></div>
+</div></div>
+</section>`;
+}
+
+function buildFramingPanel(){
+  return `<section class="panel" id="panel-framing">
+<div class="panel-header"><h2>Framing</h2><p>Posts, trusses, and structural details.</p></div>
+<div class="section-card"><h3>Posts & Footings</h3><div class="form-grid">
+<div class="form-group"><label>Post Size</label><select id="postSize"><option value="3ply-2x6" selected>3-Ply 2×6 (Ebbers Std)</option><option value="3ply-2x8">3-Ply 2×8</option><option value="4ply-2x6">4-Ply 2×6</option><option value="6x6">6×6 Solid</option></select></div>
+<div class="form-group"><label>Post Spacing — Sidewalls</label><select id="postSpSide"><option value="6">6 ft</option><option value="8" selected>8 ft (standard)</option></select></div>
+<div class="form-group"><label>Footing Diameter <span class="unit">(in)</span></label><select id="footingDia"><option value="18" selected>18" (standard)</option><option value="16">16" (porches/lean-tos)</option><option value="24">24" (heavy loads)</option></select></div>
+<div class="form-group"><label>Footing Depth <span class="unit">(in)</span></label><select id="footingDepth"><option value="36">36"</option><option value="42" selected>42" (standard)</option><option value="48">48"</option></select></div>
+<div class="form-group"><label>Bracket Type</label><select id="bracketType"><option value="wet-set" selected>Wet-Set w/ Welded Rebar</option><option value="retrofit">Retrofit / Post-Pour</option></select></div>
+</div></div>
+<div class="section-card"><h3>Trusses</h3><div class="form-grid">
+<div class="form-group"><label>Truss Spacing</label><select id="trussSp"><option value="8" selected>8 ft o.c. (standard)</option><option value="4">4 ft o.c.</option><option value="2">2 ft o.c.</option></select></div>
+<div class="form-group"><label>Truss Type</label><select id="trussType"><option value="common" selected>Common</option><option value="scissor">Scissor</option><option value="attic">Attic</option><option value="mono">Mono (single slope)</option></select></div>
+</div><div style="margin-top:10px"><span class="spec-locked">Trusses sit on middle ply — not notched</span></div></div>
+<div class="section-card"><h3>Wall Framing <span class="badge">Ebbers Standard</span></h3><div class="form-grid">
+<div class="form-group"><label>Wall Girts</label><input type="text" value="2×6 @ 24&quot; o.c." disabled></div>
+<div class="form-group"><label>Grade Board</label><input type="text" value="2×12 Treated — Full Perimeter" disabled></div>
+<div class="form-group"><label>Purlins</label><input type="text" value="2×4 @ 24&quot; o.c." disabled></div>
+<div class="form-group"><label>Fascia</label><input type="text" value="2×6 Fascia Board" disabled></div>
+<div class="form-group"><label>Purlin Screws</label><input type="text" value="6&quot; SSD Screws" disabled></div>
+<div class="form-group"><label>Center Wainscot Board</label><input type="text" value="2×6 Wainscot Board" disabled></div>
+</div></div>
+<div class="section-card"><h3>Structural Options</h3>
+<div class="toggle-row"><label for="dblXBrace">Double X Bracing</label><div class="toggle-switch"><input type="checkbox" id="dblXBrace" checked><span class="toggle-slider"></span></div></div>
+<div class="toggle-row"><label for="collarTies">Collar Ties</label><div class="toggle-switch"><input type="checkbox" id="collarTies"><span class="toggle-slider"></span></div></div>
+<div class="toggle-row"><label for="kneeBraces">Knee Braces</label><div class="toggle-switch"><input type="checkbox" id="kneeBraces"><span class="toggle-slider"></span></div></div>
+</div></section>`;
+}
+
+function buildRoofWallsPanel(){
+  return `<section class="panel" id="panel-roofwalls">
+<div class="panel-header"><h2>Roof & Walls</h2><p>Insulation, house wrap, ventilation, and trim.</p></div>
+<div class="section-card"><h3>Insulation</h3><div class="form-grid">
+<div class="form-group"><label>Wall Insulation</label><select id="wallInsul"><option value="none">None</option><option value="bubble">Bubble Wrap / Radiant Barrier</option><option value="r19" selected>R-19 Fiberglass Batt (5.5")</option><option value="spray-closed">Spray Foam — Closed Cell</option><option value="spray-open">Spray Foam — Open Cell</option></select></div>
+<div class="form-group"><label>Roof Insulation</label><select id="roofInsul"><option value="none" selected>None</option><option value="bubble">Bubble Wrap / Radiant Barrier</option><option value="r19">R-19 Fiberglass Batt (5.5")</option><option value="r30">R-30 Fiberglass Batt (10")</option><option value="spray-closed">Spray Foam — Closed Cell</option><option value="spray-open">Spray Foam — Open Cell</option></select></div>
+</div></div>
+<div class="section-card"><h3>Liner Panels</h3>
+<div class="toggle-row"><label for="wallLiner">Wall Liner Panels (steel)</label><div class="toggle-switch"><input type="checkbox" id="wallLiner"><span class="toggle-slider"></span></div></div>
+<div class="toggle-row"><label for="ceilingLiner">Ceiling Liner Panels (steel)</label><div class="toggle-switch"><input type="checkbox" id="ceilingLiner"><span class="toggle-slider"></span></div></div>
+</div>
+<div class="section-card"><h3>House Wrap & Ventilation</h3>
+<div class="toggle-row"><label for="houseWrap">Block-it House Wrap <span class="spec-locked">Ebbers Std</span></label><div class="toggle-switch"><input type="checkbox" id="houseWrap" checked><span class="toggle-slider"></span></div></div>
+<div class="toggle-row"><label for="ridgeVent">Ridge Vent</label><div class="toggle-switch"><input type="checkbox" id="ridgeVent" checked><span class="toggle-slider"></span></div></div>
+<div class="toggle-row"><label for="eaveVent">Eave Vents</label><div class="toggle-switch"><input type="checkbox" id="eaveVent"><span class="toggle-slider"></span></div></div>
+</div>
+<div class="section-card"><h3>Gutters</h3>
+<div class="toggle-row"><label for="gutters">6" Seamless Gutters <span class="spec-locked">Ebbers Std</span></label><div class="toggle-switch"><input type="checkbox" id="gutters" checked><span class="toggle-slider"></span></div></div>
+<div class="form-grid" style="margin-top:10px"><div class="form-group"><label>Downspouts</label><select id="downspouts"><option value="auto" selected>Auto (1 per 40 LF)</option><option value="2">2</option><option value="4">4</option><option value="6">6</option></select></div></div>
+</div></section>`;
+}
+
+function buildDoorsPanel(){
+  return `<section class="panel" id="panel-doors">
+<div class="panel-header"><h2>Doors & Windows</h2><p>Add openings and choose styles. Drag them on the Building Preview to position.</p></div>
+<div class="section-card"><h3>Overhead / Garage Doors</h3><p style="font-size:.88rem;color:var(--dark-gray);margin-bottom:12px">Each OH door automatically gets 2 posts flanking it.</p>
+<div class="item-list" id="ohDoorList"></div><button class="btn-add" id="addOHDoor">+ Add Overhead Door</button></div>
+<div class="section-card"><h3>Walk-Through Doors</h3>
+<div class="item-list" id="walkDoorList"></div><button class="btn-add" id="addWalkDoor">+ Add Walk-Through Door</button></div>
+<div class="section-card"><h3>Windows</h3><p style="font-size:.88rem;color:var(--dark-gray);margin-bottom:12px">Windows auto-align to avoid landing on steel ribs (9" o.c., 36" panels).</p>
+<div class="item-list" id="windowList"></div><button class="btn-add" id="addWindow">+ Add Window</button></div>
+</section>`;
+}
+
+function buildColorsPanel(){
+  const grids = [
+    {id:'colorGridRoof',label:'labelRoofColor',title:'Roof Color',key:'roof',def:'Charcoal'},
+    {id:'colorGridSidewall',label:'labelSidewallColor',title:'Sidewall Color',key:'sidewall',def:'Light Stone'},
+    {id:'colorGridWainscot',label:'labelWainscotColor',title:'Wainscot Color',key:'wainscot',def:'Burnished Slate'},
+    {id:'colorGridTrim',label:'labelTrimColor',title:'Trim Color',key:'trim',def:'Charcoal'},
+    {id:'colorGridGarageDoor',label:'labelGarageDoorColor',title:'Garage Door Color',key:'garageDoor',def:'Arctic White'},
+    {id:'colorGridWalkDoor',label:'labelWalkDoorColor',title:'Walk-Through Door Color',key:'walkDoor',def:'Arctic White'},
+  ];
+  return `<section class="panel" id="panel-colors">
+<div class="panel-header"><h2>Steel Colors</h2><p>Frontier Metal Supply — Auburn, NE. Sherwin-Williams WeatherXL 40-year warranty.</p></div>
+${grids.map(g=>`<div class="section-card"><h3>${g.title}</h3><div class="color-grid" id="${g.id}"></div><div class="selected-color-label" id="${g.label}">${g.def}</div></div>`).join('')}
+</section>`;
+}
+
+function buildExtrasPanel(){
+  return `<section class="panel" id="panel-extras">
+<div class="panel-header"><h2>Extras</h2><p>Floors, porches, electrical, and markups.</p></div>
+<div class="section-card"><h3>Floor Type</h3><div class="form-grid">
+<div class="form-group"><label>Floor</label><select id="floorType"><option value="dirt">Dirt</option><option value="rock">Rock / Gravel</option><option value="concrete" selected>Concrete Slab</option></select></div>
+</div><div id="concreteOptions" style="margin-top:14px"><div class="form-grid">
+<div class="form-group"><label>Slab Thickness <span class="unit">(in)</span></label><select id="slabThick"><option value="4" selected>4"</option><option value="5">5"</option><option value="6">6"</option></select></div>
+<div class="form-group"><label>Rebar</label><select id="rebarType"><option value="none">None</option><option value="fiber">Fiber Mesh</option><option value="4-rebar" selected>#4 Rebar Grid</option><option value="wwm">Welded Wire Mesh</option></select></div>
+</div>
+<div class="toggle-row" style="margin-top:10px"><label for="vaporBarrier">Vapor Barrier (6 mil poly)</label><div class="toggle-switch"><input type="checkbox" id="vaporBarrier" checked><span class="toggle-slider"></span></div></div>
+</div></div>
+<div class="section-card"><h3>Porch</h3>
+<div class="toggle-row"><label for="porchToggle">Timber-Framed Porch</label><div class="toggle-switch"><input type="checkbox" id="porchToggle"><span class="toggle-slider"></span></div></div>
+<div id="porchOptions" style="display:none;margin-top:14px"><div class="form-grid">
+<div class="form-group"><label>Porch Wall</label><select id="porchWall"><option value="front" selected>Front Endwall</option><option value="back">Back Endwall</option><option value="left">Left Sidewall</option><option value="right">Right Sidewall</option></select></div>
+<div class="form-group"><label>Porch Depth <span class="unit">(ft)</span></label><input type="number" id="porchDepth" value="8" min="4" max="16" step="2"></div>
+<div class="form-group"><label>Porch Length <span class="unit">(ft)</span></label><input type="number" id="porchLength" value="24" min="8" step="4"></div>
+<div class="form-group"><label>Post Size</label><select id="porchPostSize"><option value="6x6" selected>6×6 Timber</option><option value="8x8">8×8 Timber</option></select></div>
+</div></div></div>
+<div class="section-card"><h3>Electrical</h3>
+<div class="toggle-row"><label for="elecRoughIn">Electrical Rough-In Allowance</label><div class="toggle-switch"><input type="checkbox" id="elecRoughIn"><span class="toggle-slider"></span></div></div>
+</div>
+<div class="section-card"><h3>Markup & Waste</h3><div class="form-grid cols-3">
+<div class="form-group"><label>Material Waste <span class="unit">(%)</span></label><input type="number" id="wastePct" value="10" min="0" max="30" step="1"></div>
+<div class="form-group"><label>Labor <span class="unit">(%)</span></label><input type="number" id="laborPct" value="35" min="0" max="60" step="1"></div>
+<div class="form-group"><label>GC Overhead <span class="unit">(%)</span></label><input type="number" id="gcPct" value="10" min="0" max="30" step="1"></div>
+</div></div></section>`;
+}
+
+function buildPricesPanel(){
+  return `<section class="panel" id="panel-prices">
+<div class="panel-header"><h2>Material Prices</h2><p>Update any price to match your supplier.</p></div>
+<div class="section-card"><h3>Lumber</h3><div class="price-grid" id="pricesLumber"></div></div>
+<div class="section-card"><h3>Steel Panels</h3><div class="price-grid" id="pricesSteel"></div></div>
+<div class="section-card"><h3>Concrete & Footings</h3><div class="price-grid" id="pricesConcrete"></div></div>
+<div class="section-card"><h3>Doors & Windows</h3><div class="price-grid" id="pricesDoors"></div></div>
+<div class="section-card"><h3>Insulation & Misc</h3><div class="price-grid" id="pricesMisc"></div></div>
+</section>`;
+}
+
+function buildPreviewPanel(){
+  return `<section class="panel" id="panel-preview">
+<div class="panel-header"><h2>Building Preview</h2><p>Live visualization. Toggle framing/siding view. Drag doors & windows to reposition.</p></div>
+<div class="building-preview-wrapper">
+<div class="preview-tabs">
+<button class="preview-tab active" data-view="front">Front</button>
+<button class="preview-tab" data-view="back">Back</button>
+<button class="preview-tab" data-view="left">Left Side</button>
+<button class="preview-tab" data-view="right">Right Side</button>
+<button class="preview-tab" data-view="plan">Overhead</button>
+<span style="flex:1"></span>
+<button class="preview-tab" id="btnToggleFraming" style="background:var(--off-white)">🔧 Show Framing</button>
+</div>
+<svg class="building-canvas" id="buildingSVG" viewBox="0 0 900 550" xmlns="http://www.w3.org/2000/svg"></svg>
+</div></section>`;
+}
+
+function buildMaterialsPanel(){
+  return `<section class="panel" id="panel-materials">
+<div class="panel-header"><h2>Material List</h2><p>Complete material order list — quantities only, no pricing.</p></div>
+<div id="materialListOutput"></div>
+<div class="btn-group"><button class="btn-primary" id="btnCalcMaterials">📦 Generate Material List</button><button class="btn-secondary" onclick="window.print()">🖨️ Print</button></div>
+</section>`;
+}
+
+function buildEstimatePanel(){
+  return `<section class="panel" id="panel-estimate">
+<div class="panel-header"><h2>Estimate</h2><p>Full material list and cost breakdown.</p></div>
+<div class="section-card"><h3>Client Information</h3><div class="client-info-grid">
+<div class="form-group"><label>Client Name</label><input type="text" id="clientName" placeholder="John Smith"></div>
+<div class="form-group"><label>Project Address</label><input type="text" id="clientAddress" placeholder="123 Main St, Auburn NE"></div>
+<div class="form-group"><label>Date</label><input type="text" id="estDate"></div>
+<div class="form-group"><label>Estimate #</label><input type="text" id="estNumber" placeholder="EC-2026-001"></div>
+</div></div>
+<div id="estimateOutput"></div>
+<div class="btn-group"><button class="btn-primary" id="btnCalcEstimate">📋 Calculate Estimate</button><button class="btn-secondary" onclick="window.print()">🖨️ Print / Save PDF</button></div>
+</section>`;
+}
+
+function buildInfoPanel(){
+  const specs = [
+    {title:'Wet-Set Metal Brackets on Poured Concrete Piers',desc:'We never bury posts in the ground. Every post sits on a poured concrete footing with a wet-set metal bracket that has rebar welded to the base, embedded directly into the concrete while it cures.',advantages:['Known uplift capacity','Code-recognized design methods','No loss of capacity from wood decay','No dependence on soil moisture or freeze-thaw cycles','Superior long-term structural reliability','Posts can be replaced without digging'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="85" width="60" height="45" rx="3" fill="#b0b0a0" stroke="#888" stroke-width="1.5"/><rect x="55" y="45" width="30" height="42" fill="#c4a060" stroke="#8b6b3d" stroke-width="1.5"/><rect x="48" y="82" width="44" height="8" fill="#777" stroke="#555" stroke-width="1" rx="1"/><line x1="60" y1="90" x2="60" y2="125" stroke="#666" stroke-width="2"/><line x1="80" y1="90" x2="80" y2="125" stroke="#666" stroke-width="2"/><text x="70" y="140" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">Concrete Pier + Bracket</text></svg>`},
+    {title:'3-Ply Laminated Posts (Minimum)',desc:'Our posts are built from at least three layers of dimensional lumber laminated together. This creates a stronger, straighter post than a single solid timber, and allows the truss to sit directly on the center ply.',advantages:['Stronger than solid timber posts','Straighter — less likely to warp or twist','Truss sits on middle ply for direct load transfer','Easier to attach girts and other framing','Can be built taller without special ordering'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="35" y="15" width="18" height="100" fill="#d4b87a" stroke="#a08050" stroke-width="1"/><rect x="55" y="15" width="18" height="100" fill="#c4a868" stroke="#a08050" stroke-width="1"/><rect x="75" y="15" width="18" height="100" fill="#d4b87a" stroke="#a08050" stroke-width="1"/><text x="64" y="10" text-anchor="middle" font-size="8" fill="#666" font-family="sans-serif">Ply 1 | Ply 2 | Ply 3</text><line x1="30" y1="30" x2="98" y2="30" stroke="#8b5e3c" stroke-width="2" stroke-dasharray="4,2"/><text x="64" y="130" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">3-Ply Laminated Post</text></svg>`},
+    {title:'Trusses on Middle Ply',desc:'Our trusses sit directly on the center ply of the 3-ply post rather than being notched into the side. This preserves the full structural strength of the post and provides a direct load path from roof to foundation.',advantages:['No notching weakens the post','Direct vertical load transfer','Simpler, stronger connection','Better wind uplift resistance'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="40" width="12" height="80" fill="#c4a868" stroke="#a08050" stroke-width="1"/><rect x="63" y="40" width="12" height="80" fill="#d4b87a" stroke="#a08050" stroke-width="1"/><rect x="76" y="40" width="12" height="80" fill="#c4a868" stroke="#a08050" stroke-width="1"/><polygon points="20,42 70,15 120,42" fill="none" stroke="#8b5e3c" stroke-width="2"/><rect x="63" y="35" width="12" height="8" fill="#b09050" stroke="#8b6b3d" stroke-width="1"/><text x="70" y="130" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">Truss on Center Ply</text></svg>`},
+    {title:'2×6 Wall Girts @ 24" O.C.',desc:'Wall girts run horizontally between posts and provide the mounting surface for steel siding. Our standard 2×6 girts at 24-inch spacing provide excellent rigidity and a solid surface for insulation.',advantages:['Strong attachment for steel siding','24" spacing matches insulation batt widths','2×6 depth accommodates R-19 insulation','Resists wind suction loads on walls'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="10" width="10" height="110" fill="#c4a868" stroke="#a08050" stroke-width="1"/><rect x="115" y="10" width="10" height="110" fill="#c4a868" stroke="#a08050" stroke-width="1"/>${[30,55,80,105].map(y=>`<rect x="22" y="${y}" width="96" height="6" fill="#d4b87a" stroke="#a08050" stroke-width=".8"/>`).join('')}<text x="70" y="130" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">Girts @ 24" O.C.</text></svg>`},
+    {title:'LVL Garage Door Headers',desc:'We use engineered Laminated Veneer Lumber (LVL) beams as headers above every garage door opening. LVL is significantly stronger than standard dimensional lumber and won\'t sag over wide spans.',advantages:['Handles heavy loads over wide openings','Won\'t sag, bow, or twist over time','Consistent engineering properties','Available in long lengths for wide doors'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="30" width="12" height="80" fill="#c4a868" stroke="#a08050" stroke-width="1"/><rect x="118" y="30" width="12" height="80" fill="#c4a868" stroke="#a08050" stroke-width="1"/><rect x="8" y="25" width="124" height="12" fill="#b89050" stroke="#8b6b3d" stroke-width="1.5" rx="1"/><rect x="22" y="38" width="96" height="72" fill="#ddd" stroke="#999" stroke-width="1" rx="2"/><text x="70" y="78" text-anchor="middle" font-size="10" fill="#888" font-family="sans-serif">DOOR</text><text x="70" y="130" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">Stacked LVL Header</text></svg>`},
+    {title:'Block-it House Wrap',desc:'Every building gets wrapped in Block-it house wrap before siding goes on. This provides a weather-resistant barrier that blocks moisture infiltration while allowing the wall assembly to breathe.',advantages:['Prevents moisture damage behind siding','Reduces air infiltration and drafts','Allows water vapor to escape from inside','Adds a secondary weather barrier'],svg:`<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="15" width="100" height="100" fill="#e8e4d8" stroke="#ccc" stroke-width="1" rx="2"/><text x="70" y="55" text-anchor="middle" font-size="11" fill="#999" font-weight="600" font-family="sans-serif">BLOCK-IT</text><text x="70" y="72" text-anchor="middle" font-size="8" fill="#aaa" font-family="sans-serif">HOUSE WRAP</text>${[25,45,65,85].map(y=>`<line x1="25" y1="${y}" x2="115" y2="${y}" stroke="#ddd" stroke-width=".5" stroke-dasharray="4,3"/>`).join('')}<text x="70" y="130" text-anchor="middle" font-size="9" fill="#666" font-family="sans-serif">Weather Barrier</text></svg>`}
+  ];
+  return `<section class="panel" id="panel-info">
+<div class="panel-header"><h2>How We Build</h2><p>Ebbers Construction standards — why we build this way.</p></div>
+${specs.map(s=>`<div class="info-card">
+<div class="info-illustration">${s.svg}</div>
+<div class="info-body"><h4>${s.title}</h4><p>${s.desc}</p><ul>${s.advantages.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+</div>`).join('')}
+</section>`;
+}
+
+// ═══════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  buildAllPanels();
+  initNavigation();
+  initColorGrids();
+  initPreviewCards();
+  initPriceEditor();
+  initDoorWindowLists();
+  initToggles();
+  initPreviewTabs();
+  renderBuildingPreview();
+  setTodayDate();
+  el('btnCalcEstimate').addEventListener('click',calculateEstimate);
+  el('btnCalcMaterials').addEventListener('click',generateMaterialList);
+  el('btnToggleFraming').addEventListener('click',()=>{
+    showFraming=!showFraming;
+    el('btnToggleFraming').textContent=showFraming?'🎨 Show Siding':'🔧 Show Framing';
+    el('btnToggleFraming').style.background=showFraming?'var(--accent)':'var(--off-white)';
+    el('btnToggleFraming').style.color=showFraming?'#fff':'var(--dark-gray)';
+    renderBuildingPreview();
+  });
+  document.querySelectorAll('select,input').forEach(e=>e.addEventListener('change',renderBuildingPreview));
+});
+
+function setTodayDate(){const d=new Date();el('estDate').value=(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}
+
+// ─── NAVIGATION ───
+function initNavigation(){
+  const sBtns=document.querySelectorAll('.sidebar .nav-btn');
+  const mBtns=document.querySelectorAll('.mobile-nav-btn');
+  const panels=document.querySelectorAll('.panel');
+  function switchPanel(t){
+    sBtns.forEach(b=>{b.classList.toggle('active',b.dataset.panel===t)});
+    mBtns.forEach(b=>{b.classList.toggle('active',b.dataset.panel===t)});
+    panels.forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});
+    el('sidebar').classList.remove('open');el('overlay').classList.remove('open');
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(t==='estimate')calculateEstimate();
+    if(t==='preview')renderBuildingPreview();
+    if(t==='materials')generateMaterialList();
+  }
+  sBtns.forEach(b=>b.addEventListener('click',()=>switchPanel(b.dataset.panel)));
+  mBtns.forEach(b=>b.addEventListener('click',()=>switchPanel(b.dataset.panel)));
+  el('mobileMenuBtn').addEventListener('click',()=>{el('sidebar').classList.toggle('open');el('overlay').classList.toggle('open')});
+  el('overlay').addEventListener('click',()=>{el('sidebar').classList.remove('open');el('overlay').classList.remove('open')});
+}
+
+function initPreviewCards(){
+  ['roofStyleGrid','panelProfileGrid'].forEach(gid=>{
+    const grid=el(gid);const inputId=gid==='roofStyleGrid'?'roofStyle':'panelProfile';
+    grid.querySelectorAll('.preview-card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        grid.querySelectorAll('.preview-card').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');el(inputId).value=card.dataset.value;renderBuildingPreview();
+      });
+    });
+  });
+  renderProfileSVGs();
+}
+
+function renderProfileSVGs(){
+  el('pvProRib').innerHTML=`<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f0f0ee" width="160" height="80"/>${[0,1,2,3,4].map(i=>`<path d="M${10+i*35},75 L${14+i*35},15 L${22+i*35},15 L${26+i*35},75" fill="none" stroke="#888" stroke-width="1.5"/>`).join('')}</svg>`;
+  el('pvBoardBatten').innerHTML=`<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f0f0ee" width="160" height="80"/>${[0,1,2,3].map(i=>`<rect x="${20+i*35}" y="5" width="8" height="70" fill="#999" rx="1"/>`).join('')}</svg>`;
+  el('pvStandingSeam').innerHTML=`<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg"><rect fill="#f0f0ee" width="160" height="80"/>${[0,1,2,3,4].map(i=>`<rect x="${13+i*32}" y="5" width="4" height="70" fill="#777" rx="1"/>`).join('')}</svg>`;
+  el('pvRoofGable').innerHTML=`<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg"><polygon points="20,65 80,15 140,65" fill="none" stroke="#333" stroke-width="2"/><rect x="20" y="65" width="120" height="8" fill="none" stroke="#333" stroke-width="1.5"/></svg>`;
+  el('pvRoofSingle').innerHTML=`<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg"><polygon points="20,65 20,25 140,45 140,65" fill="none" stroke="#333" stroke-width="2"/></svg>`;
+}
+
+function initColorGrids(){
+  [{id:'colorGridRoof',key:'roof',label:'labelRoofColor',def:'Charcoal'},{id:'colorGridSidewall',key:'sidewall',label:'labelSidewallColor',def:'Light Stone'},{id:'colorGridWainscot',key:'wainscot',label:'labelWainscotColor',def:'Burnished Slate'},{id:'colorGridTrim',key:'trim',label:'labelTrimColor',def:'Charcoal'},{id:'colorGridGarageDoor',key:'garageDoor',label:'labelGarageDoorColor',def:'Arctic White'},{id:'colorGridWalkDoor',key:'walkDoor',label:'labelWalkDoorColor',def:'Arctic White'}].forEach(cfg=>{
+    const grid=el(cfg.id);if(!grid)return;
+    FM_COLORS.forEach(color=>{
+      const s=document.createElement('div');s.className='color-swatch'+(color.name===cfg.def?' selected':'');
+      s.style.backgroundColor=color.hex;s.title=color.name;
+      if(['Arctic White','Polar White'].includes(color.name))s.style.border='1px solid #ccc';
+      s.addEventListener('click',()=>{grid.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('selected'));s.classList.add('selected');selectedColors[cfg.key]=color.name;el(cfg.label).textContent=color.name;renderBuildingPreview()});
+      grid.appendChild(s);
+    });
+  });
+}
+
+function initPriceEditor(){
+  Object.entries(PRICE_GROUPS).forEach(([group,keys])=>{
+    const c=el('prices'+group.charAt(0).toUpperCase()+group.slice(1));if(!c)return;
+    keys.forEach(key=>{
+      const item=document.createElement('div');item.className='price-item';
+      item.innerHTML=`<span class="price-label">${PRICE_LABELS[key]||key}</span><input type="number" step="0.01" min="0" value="${PRICES[key]}" data-pk="${key}">`;
+      item.querySelector('input').addEventListener('change',e=>{PRICES[key]=parseFloat(e.target.value)||0});
+      c.appendChild(item);
+    });
+  });
+}
+
+function initDoorWindowLists(){
+  renderOHDoors();renderWalkDoors();renderWindows();
+  el('addOHDoor').addEventListener('click',()=>{ohDoors.push({size:'10x10',opener:false,style:'commercial-ribbed',wall:'front',pos:50});renderOHDoors()});
+  el('addWalkDoor').addEventListener('click',()=>{walkDoors.push({size:'3070',style:'steel-flush',wall:'front',pos:80});renderWalkDoors()});
+  el('addWindow').addEventListener('click',()=>{windows.push({size:'3x4',wall:'left',pos:50});renderWindows()});
+}
+
+function renderOHDoors(){
+  const list=el('ohDoorList');list.innerHTML='';
+  ohDoors.forEach((d,i)=>{const row=document.createElement('div');row.className='item-row';
+    row.innerHTML=`<select data-i="${i}" data-f="size">${['10x8','10x10','12x10','12x12','14x12','16x14'].map(s=>`<option value="${s}"${d.size===s?' selected':''}>${s.replace('x',"'×")}'</option>`).join('')}</select>
+    <select data-i="${i}" data-f="style"><option value="commercial-ribbed"${d.style==='commercial-ribbed'?' selected':''}>Commercial Ribbed</option><option value="commercial-flush"${d.style==='commercial-flush'?' selected':''}>Commercial Flush</option><option value="raised-panel"${d.style==='raised-panel'?' selected':''}>Raised Panel</option><option value="full-view"${d.style==='full-view'?' selected':''}>Full View Glass</option></select>
+    <select data-i="${i}" data-f="wall"><option value="front"${d.wall==='front'?' selected':''}>Front</option><option value="back"${d.wall==='back'?' selected':''}>Back</option><option value="left"${d.wall==='left'?' selected':''}>Left</option><option value="right"${d.wall==='right'?' selected':''}>Right</option></select>
+    <label style="display:flex;align-items:center;gap:4px;font-size:.88rem;white-space:nowrap"><input type="checkbox"${d.opener?' checked':''} data-i="${i}" data-f="opener"> Opener</label>
+    <button class="btn-remove" data-i="${i}">✕</button>`;
+    row.querySelectorAll('select').forEach(s=>s.addEventListener('change',e=>{ohDoors[e.target.dataset.i][e.target.dataset.f]=e.target.value;renderBuildingPreview()}));
+    row.querySelector('input[type="checkbox"]').addEventListener('change',e=>{ohDoors[e.target.dataset.i].opener=e.target.checked});
+    row.querySelector('.btn-remove').addEventListener('click',e=>{ohDoors.splice(e.target.dataset.i,1);renderOHDoors();renderBuildingPreview()});
+    list.appendChild(row);
+  });
+}
+
+function renderWalkDoors(){
+  const list=el('walkDoorList');list.innerHTML='';
+  walkDoors.forEach((d,i)=>{const row=document.createElement('div');row.className='item-row';
+    row.innerHTML=`<select data-i="${i}" data-f="size"><option value="3070"${d.size==='3070'?' selected':''}>3070 (3'×7')</option><option value="6070"${d.size==='6070'?' selected':''}>6070 (6'×7')</option></select>
+    <select data-i="${i}" data-f="wall"><option value="front"${d.wall==='front'?' selected':''}>Front</option><option value="back"${d.wall==='back'?' selected':''}>Back</option><option value="left"${d.wall==='left'?' selected':''}>Left</option><option value="right"${d.wall==='right'?' selected':''}>Right</option></select>
+    <button class="btn-remove" data-i="${i}">✕</button>`;
+    row.querySelectorAll('select').forEach(s=>s.addEventListener('change',e=>{walkDoors[e.target.dataset.i][e.target.dataset.f]=e.target.value;renderBuildingPreview()}));
+    row.querySelector('.btn-remove').addEventListener('click',e=>{walkDoors.splice(e.target.dataset.i,1);renderWalkDoors();renderBuildingPreview()});
+    list.appendChild(row);
+  });
+}
+
+function renderWindows(){
+  const list=el('windowList');list.innerHTML='';
+  windows.forEach((w,i)=>{const row=document.createElement('div');row.className='item-row';
+    row.innerHTML=`<select data-i="${i}" data-f="size"><option value="3x3"${w.size==='3x3'?' selected':''}>3'×3'</option><option value="3x4"${w.size==='3x4'?' selected':''}>3'×4'</option><option value="4x4"${w.size==='4x4'?' selected':''}>4'×4'</option></select>
+    <select data-i="${i}" data-f="wall"><option value="front"${w.wall==='front'?' selected':''}>Front</option><option value="back"${w.wall==='back'?' selected':''}>Back</option><option value="left"${w.wall==='left'?' selected':''}>Left</option><option value="right"${w.wall==='right'?' selected':''}>Right</option></select>
+    <button class="btn-remove" data-i="${i}">✕</button>`;
+    row.querySelectorAll('select').forEach(s=>s.addEventListener('change',e=>{windows[e.target.dataset.i][e.target.dataset.f]=e.target.value;renderBuildingPreview()}));
+    row.querySelector('.btn-remove').addEventListener('click',e=>{windows.splice(e.target.dataset.i,1);renderWindows();renderBuildingPreview()});
+    list.appendChild(row);
+  });
+}
+
+function initToggles(){
+  el('porchToggle').addEventListener('change',()=>{el('porchOptions').style.display=el('porchToggle').checked?'block':'none';renderBuildingPreview()});
+  el('floorType').addEventListener('change',()=>{el('concreteOptions').style.display=el('floorType').value==='concrete'?'block':'none'});
+}
+
+function initPreviewTabs(){
+  document.querySelectorAll('.preview-tab[data-view]').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.preview-tab[data-view]').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');previewView=tab.dataset.view;renderBuildingPreview();
+    });
+  });
+}
+
+// ═══════════════════════════════════════
+// BUILDING PREVIEW (4 elevations + plan)
+// ═══════════════════════════════════════
+function renderBuildingPreview(){
+  const svg=el('buildingSVG');if(!svg)return;
+  const W=val('bldWidth'),L=val('bldLength'),eave=val('eaveHeight'),pitch=val('roofPitch');
+  const roofStyle=sel('roofStyle'),wainHt=val('wainscotHt'),postSp=val('postSpSide');
+  const rc=getHex(selectedColors.roof),wc=getHex(selectedColors.sidewall),wnc=getHex(selectedColors.wainscot),tc=getHex(selectedColors.trim);
+  const hasPorch=chk('porchToggle'),porchWall=sel('porchWall'),porchDepth=val('porchDepth'),porchLen=val('porchLength');
+  const cW=900,cH=550,pad=70;let s='';
+  s+=`<rect width="${cW}" height="${cH}" fill="#fafaf8"/>`;
+  const groundY=cH-pad;
+  s+=`<line x1="${pad}" y1="${groundY}" x2="${cW-pad}" y2="${groundY}" stroke="#999" stroke-width="1" stroke-dasharray="6,3"/>`;
+
+  if(previewView==='plan'){
+    renderPlanView(s,svg,W,L,postSp,eave,pitch,roofStyle,tc,rc,wc,hasPorch,porchWall,porchDepth,porchLen,cW,cH);return;
+  }
+
+  // Determine wall dimensions for this view
+  let wallW,wallLabel,wallDirLabel;
+  const isEndwall=(previewView==='front'||previewView==='back');
+  wallW=isEndwall?W:L;
+  wallDirLabel=previewView.charAt(0).toUpperCase()+previewView.slice(1);
+  const roofRise=(W/2)*(pitch/12);
+  const totalH=eave+(isEndwall&&roofStyle==='gable'?roofRise:0);
+  const scale=Math.min((cW-pad*2)/(wallW*1.3),(cH-pad*2)/(totalH*1.2));
+  const bldW=wallW*scale,bldH=eave*scale;
+  const x0=(cW-bldW)/2,y0=groundY-bldH;
+
+  if(showFraming){
+    // FRAMING VIEW
+    // Posts
+    const numPosts=Math.floor(wallW/postSp)+1;
+    for(let i=0;i<numPosts;i++){
+      const px=x0+i*(bldW/(numPosts-1));
+      s+=`<rect x="${px-3}" y="${y0}" width="6" height="${bldH}" fill="#c4a060" stroke="#8b6b3d" stroke-width="1"/>`;
+    }
+    // Girts
+    const girtRows=Math.floor(eave*12/24);
+    for(let g=1;g<=girtRows;g++){
+      const gy=groundY-g*2*scale;
+      s+=`<line x1="${x0}" y1="${gy}" x2="${x0+bldW}" y2="${gy}" stroke="#d4b87a" stroke-width="2"/>`;
+    }
+    // Grade board
+    s+=`<rect x="${x0}" y="${groundY-1*scale}" width="${bldW}" height="${1*scale}" fill="none" stroke="#5a8040" stroke-width="2" stroke-dasharray="8,3"/>`;
+    // Roof framing
+    if(isEndwall&&roofStyle==='gable'){
+      const peakX=x0+bldW/2,peakY=y0-roofRise*scale;
+      s+=`<line x1="${x0}" y1="${y0}" x2="${peakX}" y2="${peakY}" stroke="#8b6b3d" stroke-width="2.5"/>`;
+      s+=`<line x1="${peakX}" y1="${peakY}" x2="${x0+bldW}" y2="${y0}" stroke="#8b6b3d" stroke-width="2.5"/>`;
+    }else{
+      s+=`<line x1="${x0}" y1="${y0}" x2="${x0+bldW}" y2="${y0}" stroke="#8b6b3d" stroke-width="2.5"/>`;
+    }
+  }else{
+    // SIDING VIEW
+    // Main wall
+    s+=`<rect x="${x0}" y="${y0}" width="${bldW}" height="${bldH}" fill="${wc}" stroke="${tc}" stroke-width="2"/>`;
+    // Ribs on wall (pro-rib look)
+    if(sel('panelProfile')==='pro-rib'){
+      const ribSpPx=9/12*scale*3;// 9" ribs scaled
+      for(let rx=x0+ribSpPx;rx<x0+bldW;rx+=ribSpPx){
+        s+=`<line x1="${rx}" y1="${y0}" x2="${rx}" y2="${groundY}" stroke="${tc}" stroke-width=".3" opacity=".15"/>`;
+      }
+    }
+    // Wainscot
+    if(wainHt>0){
+      const wH=wainHt*scale;
+      s+=`<rect x="${x0}" y="${groundY-wH}" width="${bldW}" height="${wH}" fill="${wnc}" stroke="${tc}" stroke-width="1.5"/>`;
+      // Wainscot center board
+      s+=`<line x1="${x0}" y1="${groundY-wH/2}" x2="${x0+bldW}" y2="${groundY-wH/2}" stroke="${tc}" stroke-width="1" opacity=".4"/>`;
+    }
+    // Gable wall + fascia (endwalls only)
+    if(isEndwall&&roofStyle==='gable'){
+      const peakX=x0+bldW/2,peakY=y0-roofRise*scale;
+      // Gable wall area (same color as sidewall)
+      s+=`<polygon points="${x0},${y0} ${peakX},${peakY} ${x0+bldW},${y0}" fill="${wc}" stroke="${tc}" stroke-width="2"/>`;
+      // Fascia/eave line (just the edge — NOT a filled roof triangle)
+      const oh=8;
+      s+=`<line x1="${x0-oh}" y1="${y0}" x2="${x0+bldW+oh}" y2="${y0}" stroke="${tc}" stroke-width="3"/>`;
+      // Ridge point trim
+      s+=`<circle cx="${peakX}" cy="${peakY}" r="3" fill="${tc}"/>`;
+    }else if(!isEndwall){
+      // Side view — show roof slope
+      const roofThick=4;
+      if(roofStyle==='gable'){
+        s+=`<rect x="${x0-8}" y="${y0-roofThick}" width="${bldW+16}" height="${roofThick}" fill="${rc}" stroke="${tc}" stroke-width="1.5"/>`;
+      }
+      // Fascia
+      s+=`<line x1="${x0-8}" y1="${y0}" x2="${x0+bldW+8}" y2="${y0}" stroke="${tc}" stroke-width="2.5"/>`;
+    }
+    // Corner trim
+    s+=`<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${groundY}" stroke="${tc}" stroke-width="3"/>`;
+    s+=`<line x1="${x0+bldW}" y1="${y0}" x2="${x0+bldW}" y2="${groundY}" stroke="${tc}" stroke-width="3"/>`;
+    // Base trim
+    s+=`<line x1="${x0}" y1="${groundY}" x2="${x0+bldW}" y2="${groundY}" stroke="${tc}" stroke-width="2.5"/>`;
+  }
+
+  // Doors on this wall
+  ohDoors.filter(d=>d.wall===previewView).forEach((d,i)=>{
+    const dims=d.size.split('x').map(Number);
+    const dW=dims[0]*scale,dH=dims[1]*scale;
+    const dx=x0+(d.pos/100)*(bldW-dW);
+    const dy=groundY-dH;
+    // Door posts (2 flanking)
+    s+=`<rect x="${dx-4}" y="${y0}" width="6" height="${bldH}" fill="${tc}" opacity=".6"/>`;
+    s+=`<rect x="${dx+dW-2}" y="${y0}" width="6" height="${bldH}" fill="${tc}" opacity=".6"/>`;
+    // Door
+    s+=`<rect x="${dx}" y="${dy}" width="${dW}" height="${dH}" fill="#ddd" stroke="${tc}" stroke-width="1.5" rx="1"/>`;
+    for(let j=1;j<4;j++)s+=`<line x1="${dx}" y1="${dy+j*dH/4}" x2="${dx+dW}" y2="${dy+j*dH/4}" stroke="#bbb" stroke-width=".5"/>`;
+    // Size label
+    s+=`<text x="${dx+dW/2}" y="${dy-6}" text-anchor="middle" font-size="11" fill="#666" font-family="DM Sans,sans-serif">${d.size.replace('x',"'×")}'</text>`;
+  });
+
+  walkDoors.filter(d=>d.wall===previewView).forEach((d,i)=>{
+    const dW=3*scale,dH=7*scale;
+    const dx=x0+(d.pos/100)*(bldW-dW);
+    const dy=groundY-dH;
+    s+=`<rect x="${dx}" y="${dy}" width="${dW}" height="${dH}" fill="${getHex(selectedColors.walkDoor)}" stroke="${tc}" stroke-width="1.5" rx="1"/>`;
+    s+=`<rect x="${dx+dW*.6}" y="${dy+dH*.45}" width="${dW*.08}" height="${dW*.08}" fill="${tc}" rx="1"/>`;
+  });
+
+  windows.filter(w=>w.wall===previewView).forEach((w,i)=>{
+    const dims=w.size.split('x').map(Number);
+    const wW=dims[0]*scale,wH=dims[1]*scale;
+    const wx=x0+(w.pos/100)*(bldW-wW);
+    const wy=y0+bldH*0.3;
+    s+=`<rect x="${wx}" y="${wy}" width="${wW}" height="${wH}" fill="#b8d4e8" stroke="${tc}" stroke-width="1.5" rx="1"/>`;
+    s+=`<line x1="${wx+wW/2}" y1="${wy}" x2="${wx+wW/2}" y2="${wy+wH}" stroke="${tc}" stroke-width="1"/>`;
+    s+=`<line x1="${wx}" y1="${wy+wH/2}" x2="${wx+wW}" y2="${wy+wH/2}" stroke="${tc}" stroke-width="1"/>`;
+  });
+
+  // Porch
+  if(hasPorch&&porchWall===previewView){
+    const pD=porchDepth*scale,pL=Math.min(porchLen,wallW)*scale;
+    const px0=x0+(bldW-pL)/2;
+    s+=`<rect x="${px0}" y="${y0}" width="${pL}" height="${2}" fill="${rc}" opacity=".5"/>`;
+    // Porch posts
+    const pPosts=Math.ceil(porchLen/8)+1;
+    for(let p=0;p<pPosts;p++){
+      const ppx=px0+p*(pL/(pPosts-1));
+      s+=`<rect x="${ppx-4}" y="${y0}" width="8" height="${bldH}" fill="#8b6b3d" stroke="#5a4020" stroke-width="1" opacity=".7"/>`;
+    }
+    // Porch roof line
+    s+=`<line x1="${px0-10}" y1="${y0-5}" x2="${px0+pL+10}" y2="${y0-5}" stroke="${tc}" stroke-width="2"/>`;
+    s+=`<text x="${px0+pL/2}" y="${y0-12}" text-anchor="middle" font-size="11" fill="#888" font-family="DM Sans,sans-serif">Porch — ${porchDepth}' deep</text>`;
+  }
+
+  // Person silhouette for scale (6ft)
+  const personH=6*scale;
+  const personX=x0+bldW+20;
+  s+=`<ellipse cx="${personX}" cy="${groundY-personH}" rx="${3}" ry="${4}" fill="#ccc"/>`;
+  s+=`<line x1="${personX}" y1="${groundY-personH+4}" x2="${personX}" y2="${groundY-personH*.3}" stroke="#ccc" stroke-width="2"/>`;
+  s+=`<line x1="${personX-6}" y1="${groundY-personH*.6}" x2="${personX+6}" y2="${groundY-personH*.6}" stroke="#ccc" stroke-width="1.5"/>`;
+  s+=`<line x1="${personX}" y1="${groundY-personH*.3}" x2="${personX-5}" y2="${groundY}" stroke="#ccc" stroke-width="1.5"/>`;
+  s+=`<line x1="${personX}" y1="${groundY-personH*.3}" x2="${personX+5}" y2="${groundY}" stroke="#ccc" stroke-width="1.5"/>`;
+  s+=`<text x="${personX}" y="${groundY+14}" text-anchor="middle" font-size="10" fill="#aaa" font-family="DM Sans,sans-serif">6'</text>`;
+
+  // Dimensions
+  s+=`<text x="${cW/2}" y="${groundY+28}" text-anchor="middle" font-size="14" fill="#666" font-family="DM Sans,sans-serif">${wallW}' ${isEndwall?'Wide':'Long'}</text>`;
+  s+=`<text x="${x0-20}" y="${y0+bldH/2}" text-anchor="middle" font-size="13" fill="#666" font-family="DM Sans,sans-serif" transform="rotate(-90 ${x0-20} ${y0+bldH/2})">${eave}' Eave</text>`;
+  s+=`<text x="${cW/2}" y="${30}" text-anchor="middle" font-size="16" fill="#333" font-weight="600" font-family="DM Sans,sans-serif">${wallDirLabel} Elevation${showFraming?' — Framing':''} — ${pitch}:12</text>`;
+
+  svg.innerHTML=s;
+}
+
+function renderPlanView(s,svg,W,L,postSp,eave,pitch,roofStyle,tc,rc,wc,hasPorch,porchWall,porchDepth,porchLen,cW,cH){
+  const pad=70;
+  const scale=Math.min((cW-pad*2)/(W*1.3),(cH-pad*2)/(L*1.3));
+  const bldW=W*scale,bldH=L*scale;
+  const x0=(cW-bldW)/2,y0=(cH-bldH)/2;
+  s+=`<rect x="${x0}" y="${y0}" width="${bldW}" height="${bldH}" fill="${sel('floorType')==='concrete'?'#d8d8d0':'#e8dcc8'}" stroke="${tc}" stroke-width="2"/>`;
+
+  // Sidewall posts
+  const numSide=Math.floor(L/postSp)+1;
+  for(let i=0;i<numSide;i++){
+    const py=y0+i*(bldH/(numSide-1));
+    s+=`<rect x="${x0-5}" y="${py-5}" width="10" height="10" fill="#8b6b3d" stroke="#5a4020" stroke-width="1" rx="1"/>`;
+    s+=`<rect x="${x0+bldW-5}" y="${py-5}" width="10" height="10" fill="#8b6b3d" stroke="#5a4020" stroke-width="1" rx="1"/>`;
+  }
+  // Endwall posts
+  const ewPostSp=W/Math.max(2,Math.ceil(W/postSp));
+  const numEnd=Math.floor(W/ewPostSp)+1;
+  for(let i=1;i<numEnd-1;i++){
+    const px=x0+i*(bldW/(numEnd-1));
+    s+=`<rect x="${px-5}" y="${y0-5}" width="10" height="10" fill="#8b6b3d" stroke="#5a4020" stroke-width="1" rx="1"/>`;
+    s+=`<rect x="${px-5}" y="${y0+bldH-5}" width="10" height="10" fill="#8b6b3d" stroke="#5a4020" stroke-width="1" rx="1"/>`;
+  }
+
+  // Ridge
+  if(roofStyle==='gable')s+=`<line x1="${x0+bldW/2}" y1="${y0-5}" x2="${x0+bldW/2}" y2="${y0+bldH+5}" stroke="${rc}" stroke-width="2" stroke-dasharray="8,4"/>`;
+
+  // Porch
+  if(hasPorch){
+    const pL=Math.min(porchLen,porchWall==='front'||porchWall==='back'?W:L)*scale;
+    const pD=porchDepth*scale;
+    let px,py,pw,ph;
+    if(porchWall==='front'){px=x0+(bldW-pL)/2;py=y0-pD;pw=pL;ph=pD}
+    else if(porchWall==='back'){px=x0+(bldW-pL)/2;py=y0+bldH;pw=pL;ph=pD}
+    else if(porchWall==='left'){px=x0-pD;py=y0+(bldH-pL)/2;pw=pD;ph=pL}
+    else{px=x0+bldW;py=y0+(bldH-pL)/2;pw=pD;ph=pL}
+    s+=`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="rgba(139,107,61,.15)" stroke="#8b6b3d" stroke-width="1.5" stroke-dasharray="6,3" rx="2"/>`;
+    s+=`<text x="${px+pw/2}" y="${py+ph/2+4}" text-anchor="middle" font-size="11" fill="#8b6b3d" font-family="DM Sans,sans-serif">Porch</text>`;
+  }
+
+  s+=`<text x="${cW/2}" y="${y0-20}" text-anchor="middle" font-size="14" fill="#666" font-family="DM Sans,sans-serif">${W}' × ${L}'</text>`;
+  s+=`<text x="${cW/2}" y="${30}" text-anchor="middle" font-size="16" fill="#333" font-weight="600" font-family="DM Sans,sans-serif">Overhead Plan View</text>`;
+  // Compass
+  s+=`<text x="${cW-pad+15}" y="${y0+20}" font-size="13" fill="#aaa" font-family="DM Sans,sans-serif">N ↑</text>`;
+  // Wall labels
+  s+=`<text x="${x0+bldW/2}" y="${y0-5}" text-anchor="middle" font-size="11" fill="#999" font-family="DM Sans,sans-serif">Front</text>`;
+  s+=`<text x="${x0+bldW/2}" y="${y0+bldH+15}" text-anchor="middle" font-size="11" fill="#999" font-family="DM Sans,sans-serif">Back</text>`;
+  s+=`<text x="${x0-10}" y="${y0+bldH/2+4}" text-anchor="end" font-size="11" fill="#999" font-family="DM Sans,sans-serif">Left</text>`;
+  s+=`<text x="${x0+bldW+10}" y="${y0+bldH/2+4}" text-anchor="start" font-size="11" fill="#999" font-family="DM Sans,sans-serif">Right</text>`;
+
+  svg.innerHTML=s;
+}
+
+// ═══════════════════════════════════════
+// MATERIAL LIST (no pricing)
+// ═══════════════════════════════════════
+function generateMaterialList(){
+  const data=computeEstimateData();
+  let html='';
+  data.sections.forEach(sec=>{
+    html+=`<div class="estimate-section"><h4>${sec.title}</h4><table class="estimate-table"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th></tr></thead><tbody>`;
+    sec.lines.forEach(l=>{html+=`<tr><td>${l.desc}</td><td>${l.qty}</td><td>${l.unit}</td></tr>`});
+    html+=`</tbody></table></div>`;
+  });
+  html+=`<div style="text-align:center;margin-top:20px;padding:16px;border-top:1px solid #eee;font-size:.88rem;color:#888">Ebbers Construction · 402-580-5977 · Material list generated ${new Date().toLocaleDateString()}</div>`;
+  el('materialListOutput').innerHTML=html;
+}
+
+// ═══════════════════════════════════════
+// ESTIMATE CALCULATOR
+// ═══════════════════════════════════════
+function computeEstimateData(){
+  const W=val('bldWidth'),L=val('bldLength'),eave=val('eaveHeight'),pitch=val('roofPitch');
+  const roofStyle=sel('roofStyle'),postSp=val('postSpSide'),trussSp=val('trussSp');
+  const wainHt=val('wainscotHt'),wainMat=sel('wainscotMat'),panelProfile=sel('panelProfile');
+  const perim=2*(W+L),floorSF=W*L;
+  const slopeLen=Math.sqrt(Math.pow(W/2,2)+Math.pow((W/2)*(pitch/12),2));
+  const roofSF=roofStyle==='gable'?2*slopeLen*L:slopeLen*L;
+  const wallSF=perim*eave;
+
+  const numPostsSide=Math.floor(L/postSp)+1;
+  const numPostsEnd=Math.max(3,Math.floor(W/postSp)+1);
+  // Add 2 posts per OH door
+  const extraDoorPosts=ohDoors.length*2;
+  const totalPosts=(numPostsSide*2)+(numPostsEnd*2)-4+extraDoorPosts;
+  const postLenFt=eave+1;
+  const postSize=sel('postSize');
+  let postPlies=3,postKey='2x6_lf';
+  if(postSize==='3ply-2x8'){postKey='2x8_lf'}
+  if(postSize==='4ply-2x6'){postPlies=4}
+  if(postSize==='6x6'){postPlies=1;postKey='6x6_timber_lf'}
+  const postLF=totalPosts*postLenFt*(postSize==='6x6'?1:postPlies);
+  const footingDia=val('footingDia'),footingDepth=val('footingDepth');
+  const footVolEa=Math.PI*Math.pow(footingDia/24,2)*(footingDepth/36);
+  const footYards=totalPosts*footVolEa;
+  const bracketKey=sel('bracketType')==='wet-set'?'bracket_wetset':'bracket_retrofit';
+  const sonoKey=footingDia<=16?'sonotube_16':footingDia<=18?'sonotube_18':'sonotube_24';
+
+  const numTrusses=Math.floor(L/trussSp)+1;
+  const girtRows=Math.floor(eave*12/24);
+  const girtLF=girtRows*perim;
+  const gradeBoardLF=perim;
+  const numPurlinRows=Math.floor(slopeLen*12/24);
+  const purlinSides=roofStyle==='gable'?2:1;
+  const purlinLF=numPurlinRows*L*purlinSides;
+  const fasciaLF=roofStyle==='gable'?L*2:L*2+W;
+  const ssdScrews=numPurlinRows*purlinSides*numTrusses*2;
+  const wainBoardLF=wainHt>0?perim:0;
+  const panelKey=panelProfile==='board-batten'?'board_batten_lf':panelProfile==='standing-seam'?'standing_seam_lf':'pro_rib_lf';
+  const wallPanelSF=wallSF-(wainHt*perim);
+  const wallPanelLF=wallPanelSF/3;
+  const roofPanelLF=roofSF/3;
+  let wainCost=0,wainLabel='';
+  const wainSF=wainHt*perim;
+  if(wainMat==='steel'||wainMat==='board-batten'){const wk=wainMat==='board-batten'?'board_batten_lf':'pro_rib_lf';wainCost=(wainSF/3)*PRICES[wk];wainLabel=wainMat==='board-batten'?'B&B Wainscot':'Pro-Rib Wainscot'}
+  else if(wainMat==='versetta-stone'){wainCost=wainSF*PRICES.versetta_stone_sqft;wainLabel='Versetta Stone Wainscot'}
+  const trimLF=perim*3+(W*2)+(L*2);
+  const ridgeCapLF=L;
+  const wallInsul=sel('wallInsul'),roofInsul=sel('roofInsul');
+  const insulMap={bubble:'bubble_wrap_sqft',r19:'r19_batt_sqft',r30:'r30_batt_sqft','spray-closed':'spray_closed_sqft','spray-open':'spray_open_sqft'};
+  const insulNames={bubble:'Bubble Wrap',r19:'R-19 Fiberglass',r30:'R-30 Fiberglass','spray-closed':'Spray Foam Closed','spray-open':'Spray Foam Open'};
+  const houseWrapCost=chk('houseWrap')?wallSF*PRICES.house_wrap_sqft:0;
+  const wallLinerCost=chk('wallLiner')?wallSF*PRICES.liner_panel_sqft:0;
+  const ceilingLinerCost=chk('ceilingLiner')?floorSF*PRICES.liner_panel_sqft:0;
+  const xBraceSets=chk('dblXBrace')?Math.ceil(numPostsSide/2)*2:0;
+  const ridgeVentCost=chk('ridgeVent')?L*PRICES.ridge_vent_lf:0;
+  const eaveVentCount=chk('eaveVent')?Math.ceil(L/8)*2:0;
+  const gutterLF=chk('gutters')?L*2:0;
+  let dsCount=0;if(chk('gutters'))dsCount=sel('downspouts')==='auto'?Math.ceil(L*2/40):parseInt(sel('downspouts'));
+  let lvlLF=0;ohDoors.forEach(d=>{const dims=d.size.split('x').map(Number);lvlLF+=dims[0]+2});
+  let doorLines=[];
+  ohDoors.forEach(d=>{const k='oh_door_'+d.size;const c=PRICES[k]||1000;const oc=d.opener?PRICES.oh_opener:0;doorLines.push({desc:`OH Door ${d.size.replace('x',"'×")}' — ${d.style}${d.opener?' + opener':''}`,qty:1,unit:'ea',cost:c+oc})});
+  walkDoors.forEach(d=>{const k='walk_door_'+d.size;doorLines.push({desc:`Walk Door ${d.size}`,qty:1,unit:'ea',cost:PRICES[k]||450})});
+  windows.forEach(w=>{const k='window_'+w.size;doorLines.push({desc:`Window ${w.size.replace('x',"'×")}'`,qty:1,unit:'ea',cost:PRICES[k]||200})});
+  const flashTapeRolls=Math.ceil(windows.length/4);
+  let concreteLines=[];
+  if(sel('floorType')==='concrete'){
+    const st=val('slabThick'),sy=floorSF*(st/12)/27;
+    concreteLines.push({desc:`Concrete Slab ${st}" — ${floorSF} SF`,qty:Math.ceil(sy*10)/10,unit:'yd³',cost:sy*PRICES.concrete_yard});
+    const rb=sel('rebarType');
+    if(rb==='4-rebar'){const bars=Math.ceil(Math.ceil(floorSF/16)*2/2);concreteLines.push({desc:'#4 Rebar Grid',qty:bars,unit:'bars',cost:bars*PRICES.rebar_4_20ft})}
+    else if(rb==='wwm'){const r=Math.ceil(floorSF/750);concreteLines.push({desc:'Welded Wire Mesh',qty:r,unit:'rolls',cost:r*PRICES.wwm_roll})}
+    else if(rb==='fiber'){const b=Math.ceil(sy*1.5);concreteLines.push({desc:'Fiber Mesh',qty:b,unit:'bags',cost:b*PRICES.fiber_mesh_bag})}
+    if(chk('vaporBarrier')){const r=Math.ceil(floorSF/1500);concreteLines.push({desc:'Vapor Barrier 6mil',qty:r,unit:'rolls',cost:r*PRICES.vapor_barrier_roll})}
+  }
+  let porchLines=[];
+  if(chk('porchToggle')){
+    const pLen=val('porchLength'),pPS=sel('porchPostSize'),pF=val('porchFooting')||16;
+    const pPosts=Math.ceil(pLen/8)+1;
+    const pPK=pPS==='8x8'?'porch_post_8x8_ea':'porch_post_6x6_ea';
+    porchLines.push({desc:`Porch Posts (${pPS})`,qty:pPosts,unit:'ea',cost:pPosts*PRICES[pPK]});
+    porchLines.push({desc:`Porch Footings`,qty:pPosts,unit:'ea',cost:pPosts*PRICES[pF<=16?'sonotube_16':'sonotube_18']});
+  }
+  const elecCost=chk('elecRoughIn')?PRICES.electrical_roughin:0;
+
+  const sections=[];
+  sections.push({title:'Foundation & Footings',lines:[
+    {desc:`Concrete Footings (${footingDia}" × ${footingDepth}")`,qty:Math.ceil(footYards*10)/10,unit:'yd³',cost:footYards*PRICES.concrete_yard},
+    {desc:`Sonotube ${footingDia}"`,qty:totalPosts,unit:'ea',cost:totalPosts*PRICES[sonoKey]},
+    {desc:sel('bracketType')==='wet-set'?'Wet-Set Brackets w/ Rebar':'Retrofit Brackets',qty:totalPosts,unit:'ea',cost:totalPosts*PRICES[bracketKey]}
+  ]});
+  const framingLines=[
+    {desc:`Posts — ${postSize.replace(/-/g,' ')} × ${postLenFt}'`,qty:totalPosts,unit:'ea',cost:postLF*PRICES[postKey]},
+    {desc:`Trusses — ${W}' span @ ${trussSp}' o.c.`,qty:numTrusses,unit:'ea',cost:numTrusses*W*PRICES.truss_lf_span},
+    {desc:'2×6 Wall Girts @ 24" o.c.',qty:Math.ceil(girtLF),unit:'LF',cost:girtLF*PRICES['2x6_lf']},
+    {desc:'2×4 Purlins @ 24" o.c.',qty:Math.ceil(purlinLF),unit:'LF',cost:purlinLF*PRICES['2x4_lf']},
+    {desc:'2×12 Treated Grade Board',qty:Math.ceil(gradeBoardLF),unit:'LF',cost:gradeBoardLF*PRICES['2x12_treated_lf']},
+    {desc:'2×6 Fascia Board',qty:Math.ceil(fasciaLF),unit:'LF',cost:fasciaLF*PRICES.fascia_2x6_lf},
+    {desc:'6" SSD Screws',qty:ssdScrews,unit:'ea',cost:ssdScrews*PRICES.ssd_screw_6in},
+    {desc:'LVL Headers (OH Doors)',qty:Math.ceil(lvlLF),unit:'LF',cost:lvlLF*PRICES.lvl_header_lf}
+  ];
+  if(wainBoardLF>0)framingLines.push({desc:'2×6 Center Wainscot Board',qty:Math.ceil(wainBoardLF),unit:'LF',cost:wainBoardLF*PRICES['2x6_lf']});
+  if(xBraceSets>0)framingLines.push({desc:'Double X Brace Sets',qty:xBraceSets,unit:'sets',cost:xBraceSets*PRICES.x_brace_set});
+  sections.push({title:'Framing',lines:framingLines});
+
+  const steelLines=[
+    {desc:`Wall Panels — ${panelProfile}`,qty:Math.ceil(wallPanelLF),unit:'LF',cost:wallPanelLF*PRICES[panelKey]},
+    {desc:`Roof Panels — ${panelProfile}`,qty:Math.ceil(roofPanelLF),unit:'LF',cost:roofPanelLF*PRICES[panelKey]}
+  ];
+  if(wainCost>0)steelLines.push({desc:wainLabel,qty:Math.ceil(wainSF),unit:'SF',cost:wainCost});
+  steelLines.push({desc:'Trim & Flashing',qty:Math.ceil(trimLF),unit:'LF',cost:trimLF*PRICES.trim_lf});
+  steelLines.push({desc:'Ridge Cap',qty:Math.ceil(ridgeCapLF),unit:'LF',cost:ridgeCapLF*PRICES.ridge_cap_lf});
+  sections.push({title:'Steel & Exterior',lines:steelLines});
+
+  const insulLines=[];
+  if(houseWrapCost>0)insulLines.push({desc:'Block-it House Wrap',qty:Math.ceil(wallSF),unit:'SF',cost:houseWrapCost});
+  if(wallInsul!=='none')insulLines.push({desc:`Wall — ${insulNames[wallInsul]||''}`,qty:Math.ceil(wallSF),unit:'SF',cost:wallSF*(PRICES[insulMap[wallInsul]]||0)});
+  if(roofInsul!=='none')insulLines.push({desc:`Roof — ${insulNames[roofInsul]||''}`,qty:Math.ceil(roofSF),unit:'SF',cost:roofSF*(PRICES[insulMap[roofInsul]]||0)});
+  if(wallLinerCost>0)insulLines.push({desc:'Wall Liner Panels',qty:Math.ceil(wallSF),unit:'SF',cost:wallLinerCost});
+  if(ceilingLinerCost>0)insulLines.push({desc:'Ceiling Liner Panels',qty:Math.ceil(floorSF),unit:'SF',cost:ceilingLinerCost});
+  if(insulLines.length)sections.push({title:'Insulation & Liner',lines:insulLines});
+
+  const ventLines=[];
+  if(ridgeVentCost>0)ventLines.push({desc:'Ridge Vent',qty:Math.ceil(L),unit:'LF',cost:ridgeVentCost});
+  if(eaveVentCount>0)ventLines.push({desc:'Eave Vents',qty:eaveVentCount,unit:'ea',cost:eaveVentCount*PRICES.eave_vent_ea});
+  if(gutterLF>0)ventLines.push({desc:'6" Seamless Gutters',qty:Math.ceil(gutterLF),unit:'LF',cost:gutterLF*PRICES.gutter_6in_lf});
+  if(dsCount>0)ventLines.push({desc:'Downspouts',qty:dsCount,unit:'ea',cost:dsCount*PRICES.downspout_ea});
+  if(ventLines.length)sections.push({title:'Ventilation & Gutters',lines:ventLines});
+
+  if(doorLines.length){
+    if(flashTapeRolls>0)doorLines.push({desc:'Flashing Tape',qty:flashTapeRolls,unit:'rolls',cost:flashTapeRolls*PRICES.flashing_tape_roll});
+    sections.push({title:'Doors & Windows',lines:doorLines});
+  }
+  if(concreteLines.length)sections.push({title:'Concrete Floor',lines:concreteLines});
+  if(porchLines.length)sections.push({title:'Timber Porch',lines:porchLines});
+  if(elecCost>0)sections.push({title:'Electrical',lines:[{desc:'Electrical Rough-In',qty:1,unit:'lot',cost:elecCost}]});
+
+  let materialTotal=0;
+  sections.forEach(sec=>{sec.subtotal=0;sec.lines.forEach(l=>{sec.subtotal+=l.cost});materialTotal+=sec.subtotal});
+  const wastePct=val('wastePct')/100,laborPct=val('laborPct')/100,gcPct=val('gcPct')/100;
+  const wasteAmt=materialTotal*wastePct,matWaste=materialTotal+wasteAmt;
+  const laborAmt=matWaste*laborPct,subtotal=matWaste+laborAmt;
+  const gcAmt=subtotal*gcPct,grandTotal=subtotal+gcAmt;
+  return{sections,materialTotal,wasteAmt,matWaste,laborAmt,gcAmt,grandTotal,floorSF,W,L,eave:val('eaveHeight'),pitch:val('roofPitch'),roofStyle:sel('roofStyle'),panelProfile:sel('panelProfile'),totalPosts,wastePct,laborPct,gcPct};
+}
+
+function calculateEstimate(){
+  const d=computeEstimateData();
+  let html=`<div class="section-card" style="margin-bottom:20px"><h3>Building Summary</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:.95rem">
+  <div><strong>${d.W}'×${d.L}'</strong> — ${d.floorSF.toLocaleString()} SF</div>
+  <div><strong>${d.eave}' Eave</strong> — ${d.pitch}:12</div>
+  <div><strong>${d.roofStyle}</strong> roof</div>
+  <div><strong>${d.panelProfile}</strong> panels</div>
+  <div>Roof: <strong>${selectedColors.roof}</strong></div>
+  <div>Walls: <strong>${selectedColors.sidewall}</strong></div>
+  <div>Wainscot: <strong>${selectedColors.wainscot}</strong></div>
+  <div>Trim: <strong>${selectedColors.trim}</strong></div>
+  <div>Posts: ${d.totalPosts} total</div>
+  </div></div>`;
+
+  d.sections.forEach(sec=>{
+    html+=`<div class="estimate-section"><h4>${sec.title}</h4><table class="estimate-table"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th class="text-right">Cost</th></tr></thead><tbody>`;
+    sec.lines.forEach(l=>{html+=`<tr><td>${l.desc}</td><td>${l.qty}</td><td>${l.unit}</td><td class="text-right">${fmt(l.cost)}</td></tr>`});
+    html+=`<tr class="section-total"><td colspan="3">${sec.title} Subtotal</td><td class="text-right">${fmt(sec.subtotal)}</td></tr></tbody></table></div>`;
+  });
+
+  html+=`<div class="estimate-section"><h4>Totals</h4><table class="estimate-table"><tbody>
+  <tr><td>Material Subtotal</td><td></td><td></td><td class="text-right">${fmt(d.materialTotal)}</td></tr>
+  <tr><td>Waste (${(d.wastePct*100).toFixed(0)}%)</td><td></td><td></td><td class="text-right">${fmt(d.wasteAmt)}</td></tr>
+  <tr><td>Materials w/ Waste</td><td></td><td></td><td class="text-right">${fmt(d.matWaste)}</td></tr>
+  <tr><td>Labor (${(d.laborPct*100).toFixed(0)}%)</td><td></td><td></td><td class="text-right">${fmt(d.laborAmt)}</td></tr>
+  <tr><td>GC Overhead (${(d.gcPct*100).toFixed(0)}%)</td><td></td><td></td><td class="text-right">${fmt(d.gcAmt)}</td></tr>
+  </tbody></table></div>`;
+
+  const costSF=d.grandTotal/d.floorSF;
+  html+=`<div class="grand-total"><div><div class="total-label">Grand Total</div><div class="cost-sqft">${fmt(costSF)} per sq ft</div></div><div class="total-amount">${fmt(d.grandTotal)}</div></div>`;
+  html+=`<div style="text-align:center;margin-top:24px;padding:16px;border-top:1px solid #eee;font-size:.88rem;color:#888">Ebbers Construction · SE Nebraska · 402-580-5977<br>Estimate generated ${new Date().toLocaleDateString()} — Prices subject to change</div>`;
+  el('estimateOutput').innerHTML=html;
+}
+
+// ═══════════════════════════════════════
+// RUNNING TOTAL with animated cost changes
+// ═══════════════════════════════════════
+let lastTotal = 0;
+let countUpRAF = null;
+let currentDisplayTotal = 0;
+
+function updateRunningTotal() {
+  try {
+    const d = computeEstimateData();
+    const newTotal = d.grandTotal;
+    const diff = newTotal - lastTotal;
+    
+    if (Math.abs(diff) > 0.50 && lastTotal > 0) {
+      showCostFloat(diff);
+    }
+    
+    // Count up/down animation
+    animateCountTo(newTotal);
+    
+    lastTotal = newTotal;
+  } catch(e) {}
+}
+
+function animateCountTo(target) {
+  const numEl = el('runningTotal');
+  if (!numEl) return;
+  
+  const start = currentDisplayTotal;
+  const diff = target - start;
+  if (Math.abs(diff) < 0.01) { numEl.textContent = fmt(target); currentDisplayTotal = target; return; }
+  
+  const duration = 500;
+  const startTime = performance.now();
+  
+  // Bump effect
+  numEl.classList.add('bump');
+  setTimeout(() => numEl.classList.remove('bump'), 180);
+  
+  if (countUpRAF) cancelAnimationFrame(countUpRAF);
+  
+  function tick(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + diff * eased;
+    currentDisplayTotal = current;
+    numEl.textContent = fmt(current);
+    if (progress < 1) {
+      countUpRAF = requestAnimationFrame(tick);
+    } else {
+      currentDisplayTotal = target;
+      numEl.textContent = fmt(target);
+    }
+  }
+  countUpRAF = requestAnimationFrame(tick);
+}
+
+function showCostFloat(diff) {
+  const container = el('headerTotal');
+  if (!container) return;
+  
+  const floater = document.createElement('div');
+  floater.className = 'cost-float ' + (diff >= 0 ? 'positive' : 'negative');
+  floater.textContent = (diff >= 0 ? '+' : '−') + ' $' + Math.abs(diff).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  container.appendChild(floater);
+  
+  // Trigger animation on next frame
+  requestAnimationFrame(() => {
+    floater.classList.add('animate');
+  });
+  
+  // Clean up after animation
+  setTimeout(() => {
+    if (floater.parentNode) floater.parentNode.removeChild(floater);
+  }, 1000);
+}
+
+// Hook into all input changes to update running total
+document.addEventListener('DOMContentLoaded', () => {
+  // Initial calc after a short delay to let panels render
+  setTimeout(() => {
+    updateRunningTotal();
+  }, 300);
+  
+  // Watch for all changes
+  document.addEventListener('change', () => {
+    setTimeout(updateRunningTotal, 50);
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('btn-remove') || e.target.classList.contains('btn-add') || 
+        e.target.closest('.preview-card') || e.target.closest('.toggle-switch')) {
+      setTimeout(updateRunningTotal, 100);
+    }
+  });
+});
+
+</script>
+</body>
+</html>
