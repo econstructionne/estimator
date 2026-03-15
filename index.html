@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Ebbers Construction — Post Frame Estimator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-brand">
+      <div class="hdr-logo-box">
+        <img src="https://img1.wsimg.com/isteam/ip/34897305-07e7-4e88-85a5-cf5b253986ad/EbbersConstructionLOGO.png/:/rs=h:200,cg:true,m/qt=q:95"
+             alt="Ebbers Construction"
+             onerror="this.style.display='none';this.parentNode.innerHTML='<span class=\'logo-fallback\'>EC</span>'">
+      </div>
+      <div>
+        <div class="hdr-logo-text">Ebbers Construction</div>
+        <div class="hdr-logo-sub">Post Frame Estimator &mdash; SE Nebraska</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <a class="hdr-phone no-print" href="tel:4025805977">402-580-5977</a>
+      <button class="hdr-calc" onclick="goCalc()">&#9654; Calculate</button>
+    </div>
+  </div>
+  <div class="tabs" id="tabbar">
+    <button class="tab on"  data-p="design">Design</button>
+    <button class="tab"     data-p="framing">Framing</button>
+    <button class="tab"     data-p="roofwall">Roof &amp; Walls</button>
+    <button class="tab"     data-p="colors">Steel Colors</button>
+    <button class="tab"     data-p="openings">Doors &amp; Windows</button>
+    <button class="tab"     data-p="extras">Extras</button>
+    <button class="tab"     data-p="prices">Prices</button>
+    <button class="tab"     data-p="estimate">&#9654; Estimate</button>
+  </div>
+</div>
+
+<!-- ===== DESIGN ===== -->
+<div id="p-design" class="panel on">
+  <div class="card">
+    <div class="ctitle">Building dimensions</div>
+    <div class="g3">
+      <div class="fld"><label>Width (ft)</label><input type="number" id="width" value="40" min="12" max="200" step="4" oninput="refreshOverview()"></div>
+      <div class="fld"><label>Length (ft)</label><input type="number" id="length" value="60" min="12" max="400" step="4" oninput="refreshOverview()"></div>
+      <div class="fld"><label>Eave height (ft)</label><input type="number" id="eave" value="12" min="8" max="30" step="1" oninput="refreshOverview()"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Roof configuration</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Pitch (x:12)</label>
+        <select id="pitch" onchange="refreshOverview()">
+          <option value="3">3:12</option><option value="4" selected>4:12</option>
+          <option value="5">5:12</option><option value="6">6:12</option><option value="7">7:12</option>
+        </select>
+      </div>
+      <div class="fld"><label>Overhang — eave (in)</label><input type="number" id="ovhEave" value="12" min="0" max="36" step="2"></div>
+      <div class="fld"><label>Overhang — gable (in)</label><input type="number" id="ovhGable" value="12" min="0" max="36" step="2"></div>
+    </div>
+    <div class="g3" style="margin-top:10px">
+      <div class="fld">
+        <label>Roof steel profile</label>
+        <select id="roofProf">
+          <option value="pbr" selected>Pro-Rib Steel (standard)</option>
+          <option value="ss">Standing Seam (premium)</option>
+          <option value="bnb">Board &amp; Batten 26ga (premium)</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Ridge cap</label>
+        <select id="ridgeCap">
+          <option value="std" selected>Standard ridge cap</option>
+          <option value="vented">Vented ridge cap</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Gutters</label>
+        <select id="gutters">
+          <option value="none">None</option>
+          <option value="6in" selected>6" seamless gutters</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Wall configuration</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Wall steel profile</label>
+        <select id="wallProf">
+          <option value="pbr" selected>Pro-Rib Steel (standard)</option>
+          <option value="bnb">Board &amp; Batten 26ga (premium)</option>
+          <option value="siding">Lap siding over sheathing</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Wainscot material</label>
+        <select id="wainMat">
+          <option value="steel" selected>Steel panel (contrasting color)</option>
+          <option value="versetta">Versetta Stone</option>
+          <option value="bnb">Board &amp; Batten 26ga</option>
+          <option value="none">None</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Wainscot height (ft)</label>
+        <input type="number" id="wainscot" value="3" min="0" max="6" step="0.5">
+        <span class="fld-note">Standard = 3 ft</span>
+      </div>
+    </div>
+    <div class="note-dark" style="margin-top:10px">Block-it House Wrap included as standard on all Ebbers Construction post frame walls.</div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Quick overview</div>
+    <div class="mrow" id="overview"></div>
+  </div>
+</div>
+
+<!-- ===== FRAMING ===== -->
+<div id="p-framing" class="panel">
+  <div class="card">
+    <div class="ctitle">Post specifications <span class="ctitle-badge">Ebbers Standard</span></div>
+    <div class="spec-locked"><span class="lock">&#9632;</span> 3-ply posts minimum &bull; Trusses bear on middle ply — not notched &bull; No buried posts</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Post spacing (ft)</label>
+        <select id="postSp">
+          <option value="8" selected>8 ft (standard)</option>
+          <option value="10">10 ft</option>
+          <option value="12">12 ft</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Post ply / size</label>
+        <select id="postSize">
+          <option value="3ply2x6" selected>3-ply 2x6 (standard)</option>
+          <option value="3ply2x8">3-ply 2x8</option>
+          <option value="4ply2x6">4-ply 2x6</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Post height above bracket (ft)</label>
+        <input type="number" id="postHt" value="14" min="8" max="30" step="1">
+        <span class="fld-note">Include truss bearing height</span>
+      </div>
+    </div>
+    <div class="g3" style="margin-top:10px">
+      <div class="fld">
+        <label>Footing diameter (in)</label>
+        <select id="footDia">
+          <option value="12">12"</option><option value="16" selected>16"</option>
+          <option value="18">18"</option><option value="24">24"</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Footing depth (in)</label>
+        <input type="number" id="footDepth" value="48" min="24" max="72" step="6">
+      </div>
+      <div class="fld">
+        <label>Concrete PSI</label>
+        <select id="concPSI">
+          <option value="3000" selected>3000 PSI</option>
+          <option value="4000">4000 PSI</option>
+        </select>
+      </div>
+    </div>
+    <div class="note-dark">Poured concrete footings with rebar-embedded wet-set brackets. Zero buried posts on all Ebbers builds.</div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Wall framing <span class="ctitle-badge">Ebbers Standard</span></div>
+    <div class="spec-locked"><span class="lock">&#9632;</span> 2x6 wall girts @ 2' o.c. &bull; 2x12 treated grade board &bull; Center wainscot board &bull; Block-it House Wrap</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Girt spacing (in)</label>
+        <select id="girtSp">
+          <option value="24" selected>24" o.c. (standard)</option>
+          <option value="32">32" o.c.</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Double X bracing</label>
+        <select id="xbrace">
+          <option value="yes" selected>Yes (standard)</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Door header type</label>
+        <select id="headerType">
+          <option value="lvl" selected>Stacked LVL (standard)</option>
+          <option value="timber">Timber</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Roof framing <span class="ctitle-badge">Ebbers Standard</span></div>
+    <div class="spec-locked"><span class="lock">&#9632;</span> 2x4 purlins @ 2' o.c. &bull; 6" SSD screws purlin-to-truss &bull; 2x6 fascia board</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Truss spacing (ft)</label>
+        <select id="trussSp">
+          <option value="4">4 ft</option>
+          <option value="8" selected>8 ft (standard)</option>
+          <option value="10">10 ft</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Truss type</label>
+        <select id="trussType">
+          <option value="common" selected>Common gable</option>
+          <option value="attic">Attic storage</option>
+          <option value="scissor">Scissor</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Top plate / header beam</label>
+        <select id="topPlate">
+          <option value="lvl2x8" selected>Stacked LVL 2x8</option>
+          <option value="lvl2x10">Stacked LVL 2x10</option>
+          <option value="3ply2x8">3-ply 2x8</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROOF & WALLS ===== -->
+<div id="p-roofwall" class="panel">
+  <div class="card">
+    <div class="ctitle">Insulation</div>
+    <div class="togrow"><label>Roof insulation</label><input type="checkbox" id="roofInsul" checked></div>
+    <div id="roofInsulOpts" style="margin-top:10px">
+      <div class="g2">
+        <div class="fld"><label>Type</label>
+          <select id="roofInsulType">
+            <option value="bubble" selected>Reflective bubble wrap</option>
+            <option value="fg_r19">Fiberglass batt R-19</option>
+            <option value="spray">Spray foam 2"</option>
+          </select>
+        </div>
+        <div class="fld"><label>Liner panel under roof</label>
+          <select id="linerPanel">
+            <option value="none" selected>None</option>
+            <option value="vl34">VL-34 steel liner</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="togrow"><label>Wall insulation</label>
+      <input type="checkbox" id="wallInsul" onchange="document.getElementById('wallInsulOpts').style.display=this.checked?'block':'none'">
+    </div>
+    <div id="wallInsulOpts" style="display:none;margin-top:10px">
+      <div class="g2">
+        <div class="fld"><label>Type</label>
+          <select id="wallInsulType">
+            <option value="bubble" selected>Reflective bubble wrap</option>
+            <option value="fg_r13">Fiberglass batt R-13</option>
+            <option value="spray">Spray foam 2"</option>
+          </select>
+        </div>
+        <div class="fld"><label>Wall liner panel</label>
+          <select id="wallLiner">
+            <option value="none" selected>None</option>
+            <option value="vl34">VL-34 steel liner</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Overhang &amp; fascia</div>
+    <div class="g3">
+      <div class="fld">
+        <label>Overhang material</label>
+        <select id="ovhMat">
+          <option value="prorib" selected>Reverse-rolled Pro-Rib</option>
+          <option value="speedlap">Speed-lap panel</option>
+          <option value="soffit">Custom soffit</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Fascia</label>
+        <select id="fasciaMat">
+          <option value="2x6" selected>2x6 fascia board (standard)</option>
+          <option value="steel">Steel fascia</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Trim &amp; accessories</div>
+    <div class="togrow"><label>Wainscot center board</label><input type="checkbox" id="wainscotBoard" checked></div>
+    <div class="togrow"><label>Wainscot J-trim break</label><input type="checkbox" id="wainscotTrim" checked></div>
+    <div class="togrow"><label>Gable trim</label><input type="checkbox" id="gableTrim" checked></div>
+    <div class="togrow"><label>Base angle / rat guard</label><input type="checkbox" id="baseAngle" checked></div>
+    <div class="togrow"><label>Flashing tape on windows</label><input type="checkbox" id="flashTape" checked></div>
+    <div class="togrow"><label>Timber framed porch</label>
+      <input type="checkbox" id="hasPorch" onchange="document.getElementById('porchOpts').style.display=this.checked?'block':'none'">
+    </div>
+    <div id="porchOpts" style="display:none;margin-top:8px">
+      <div class="g2">
+        <div class="fld"><label>Porch depth (ft)</label><input type="number" id="porchDepth" value="8" min="4" max="20" step="1"></div>
+        <div class="fld"><label>Porch length (ft)</label><input type="number" id="porchLen" value="20" min="4" max="100" step="4"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Ventilation</div>
+    <div class="g2">
+      <div class="fld">
+        <label>Ridge / cupola vent</label>
+        <select id="ventType">
+          <option value="none" selected>None</option>
+          <option value="cupola_24">24" Cupola</option>
+          <option value="cupola_30">30" Cupola</option>
+          <option value="ridge_vent">Continuous ridge vent</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Sidewall vents (qty)</label>
+        <select id="sidewallVents">
+          <option value="0" selected>0</option>
+          <option value="2">2</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STEEL COLORS ===== -->
+<div id="p-colors" class="panel">
+  <div class="card">
+    <div class="ctitle">Main / roof color <span class="ctitle-badge gold">Frontier Metal Supply</span></div>
+    <div class="frontier-note">Pro-Rib panels &bull; 29ga &bull; Sherwin-Williams WeatherXL &bull; 40-year warranty</div>
+    <div class="cselrow">
+      <div class="cprev" id="main-preview"></div>
+      <div class="clabel" id="main-color-name">Tap a swatch to select</div>
+    </div>
+    <div class="color-grid" id="main-swatches"></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Wainscot / accent color <span class="ctitle-badge gold">Frontier Metal Supply</span></div>
+    <div class="frontier-note">Bottom 3' contrasting panel on all walls</div>
+    <div class="cselrow">
+      <div class="cprev" id="wain-preview"></div>
+      <div class="clabel" id="wain-color-name">Tap a swatch to select</div>
+    </div>
+    <div class="color-grid" id="wain-swatches"></div>
+  </div>
+  <div class="note">Color swatches are approximate. Always confirm with a physical sample from Frontier Metal Supply before ordering. Call (402-230-0262).</div>
+</div>
+
+<!-- ===== DOORS & WINDOWS ===== -->
+<div id="p-openings" class="panel">
+  <div class="card">
+    <div class="ctitle">Overhead doors</div>
+    <div id="oh-list"></div>
+    <button class="btn btn-o btn-sm" style="margin-top:8px" onclick="addOH()">+ Add overhead door</button>
+  </div>
+  <div class="card">
+    <div class="ctitle">Walk doors (man doors)</div>
+    <div id="walk-list"></div>
+    <button class="btn btn-o btn-sm" style="margin-top:8px" onclick="addWalk()">+ Add walk door</button>
+  </div>
+  <div class="card">
+    <div class="ctitle">Windows</div>
+    <div id="win-list"></div>
+    <button class="btn btn-o btn-sm" style="margin-top:8px" onclick="addWin()">+ Add window</button>
+  </div>
+  <div class="note-dark">All openings framed with doubled posts and stacked LVL headers. Flashing tape included on all windows. Door bucks included in material list.</div>
+</div>
+
+<!-- ===== EXTRAS ===== -->
+<div id="p-extras" class="panel">
+  <div class="card">
+    <div class="ctitle">Concrete floor</div>
+    <div class="togrow"><label>Include concrete floor</label>
+      <input type="checkbox" id="hasFloor" onchange="document.getElementById('floorOpts').style.display=this.checked?'block':'none'">
+    </div>
+    <div id="floorOpts" style="display:none;margin-top:10px">
+      <div class="g3">
+        <div class="fld"><label>Thickness (in)</label>
+          <select id="slabThick">
+            <option value="4" selected>4"</option>
+            <option value="5">5"</option>
+            <option value="6">6"</option>
+          </select>
+        </div>
+        <div class="fld"><label>Reinforcement</label>
+          <select id="rebarType">
+            <option value="none">None</option>
+            <option value="mesh" selected>Wire mesh 6x6 W1.4</option>
+            <option value="rebar4">Rebar #4 @ 18"</option>
+          </select>
+        </div>
+        <div class="fld"><label>Vapor barrier</label>
+          <select id="vaporB">
+            <option value="none">None</option>
+            <option value="6mil" selected>6 mil poly</option>
+            <option value="10mil">10 mil poly</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2" style="margin-top:10px">
+        <div class="fld"><label>Apron / approach depth (ft)</label>
+          <input type="number" id="apronDepth" value="0" min="0" max="30" step="1">
+        </div>
+        <div class="fld"><label>Turndown footing</label>
+          <select id="turndown">
+            <option value="none">None</option>
+            <option value="12" selected>12" turndown</option>
+            <option value="18">18" turndown</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Electrical rough-in</div>
+    <div class="togrow"><label>Include electrical rough-in</label>
+      <input type="checkbox" id="hasElec" onchange="document.getElementById('elecOpts').style.display=this.checked?'block':'none'">
+    </div>
+    <div id="elecOpts" style="display:none;margin-top:10px">
+      <div class="g3">
+        <div class="fld"><label>Panel (amps)</label>
+          <select id="panelAmp">
+            <option value="100">100A</option>
+            <option value="200" selected>200A</option>
+          </select>
+        </div>
+        <div class="fld"><label>Outlets (qty)</label>
+          <input type="number" id="outletQty" value="8" min="0" max="50" step="1">
+        </div>
+        <div class="fld"><label>Lighting circuits</label>
+          <input type="number" id="lightCkts" value="2" min="0" max="20" step="1">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Labor &amp; markup</div>
+    <div class="g3">
+      <div class="fld"><label>Labor (% of materials)</label>
+        <input type="number" id="laborPct" value="40" min="0" max="200" step="5">
+      </div>
+      <div class="fld"><label>Overhead &amp; profit (%)</label>
+        <input type="number" id="gcPct" value="15" min="0" max="50" step="5">
+      </div>
+      <div class="fld"><label>Waste / overage factor (%)</label>
+        <input type="number" id="wastePct" value="10" min="5" max="20" step="1">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRICES ===== -->
+<div id="p-prices" class="panel">
+  <div class="card">
+    <div class="ctitle">Lumber &amp; engineered wood</div>
+    <table><thead><tr><th>Item</th><th>Unit</th><th>Your price</th></tr></thead>
+    <tbody id="ptbl-lumber"></tbody></table>
+  </div>
+  <div class="card">
+    <div class="ctitle">Steel panels &amp; trim <span class="ctitle-badge gold">Frontier Metal Supply</span></div>
+    <table><thead><tr><th>Item</th><th>Unit</th><th>Your price</th></tr></thead>
+    <tbody id="ptbl-steel"></tbody></table>
+  </div>
+  <div class="card">
+    <div class="ctitle">Concrete, hardware &amp; brackets</div>
+    <table><thead><tr><th>Item</th><th>Unit</th><th>Your price</th></tr></thead>
+    <tbody id="ptbl-concrete"></tbody></table>
+  </div>
+  <div class="card">
+    <div class="ctitle">Doors, windows &amp; misc</div>
+    <table><thead><tr><th>Item</th><th>Unit</th><th>Your price</th></tr></thead>
+    <tbody id="ptbl-misc"></tbody></table>
+  </div>
+  <div class="note">Update prices to match your current quotes. Changes apply on next Calculate.</div>
+  <button class="btn btn-o" style="margin-top:12px" onclick="resetPrices(); buildPriceTables()">Reset to defaults</button>
+</div>
+
+<!-- ===== ESTIMATE ===== -->
+<div id="p-estimate" class="panel">
+  <div id="res-ph">
+    <div class="res-ph-icon">&#9632;</div>
+    Press <strong>Calculate</strong> to generate your full estimate
+  </div>
+  <div id="res-content" style="display:none">
+    <div class="sum-hdr">
+      <div>
+        <div class="sum-hdr-name">Ebbers Construction</div>
+        <div id="res-sumline"></div>
+      </div>
+      <button class="prt-btn no-print" onclick="window.print()">&#128438; Print / Save PDF</button>
+    </div>
+    <div class="big-tot">
+      <div><div class="bt-lbl">Total Estimate</div><div class="bt-val" id="grand-tot">—</div></div>
+      <div style="text-align:right"><div class="bt-lbl">Materials Only</div><div class="bt-mat" id="mat-only">—</div></div>
+    </div>
+    <div class="mrow" id="sum-metrics"></div>
+    <div id="color-callout" class="card" style="display:none;margin-bottom:13px">
+      <div class="ctitle">Steel color selections <span class="ctitle-badge gold">Frontier Metal Supply</span></div>
+      <div id="color-callout-body"></div>
+    </div>
+    <div class="res-sec"><div class="res-stitle">Foundation &amp; posts</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-found"></tbody></table></div>
+    </div>
+    <div class="res-sec"><div class="res-stitle">Structural framing</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-frame"></tbody></table></div>
+    </div>
+    <div class="res-sec"><div class="res-stitle">Roof system</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-roof"></tbody></table></div>
+    </div>
+    <div class="res-sec"><div class="res-stitle">Wall system</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-wall"></tbody></table></div>
+    </div>
+    <div class="res-sec" id="sec-openings"><div class="res-stitle">Doors &amp; windows</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-open"></tbody></table></div>
+    </div>
+    <div class="res-sec" id="sec-extras" style="display:none"><div class="res-stitle">Extras &amp; options</div>
+      <div class="card"><table><thead><tr><th>Item</th><th class="tr">Qty</th><th>Unit</th><th class="tr">Unit $</th><th class="tr">Total</th></tr></thead><tbody id="tbl-ext"></tbody></table></div>
+    </div>
+    <div class="res-sec"><div class="res-stitle">Cost summary</div>
+      <div class="card"><table><tbody id="tbl-summ"></tbody></table></div>
+    </div>
+    <div class="estimate-footer">
+      Estimate based on entered material prices. Verify current pricing with Frontier Metal Supply (402-230-0262) before ordering.
+      Labor estimated at entered markup. This estimate is for budgeting purposes — Ebbers Construction will provide a formal quote after site review.
+      <br><br><strong>Ebbers Construction &bull; Southeast Nebraska &bull; 402-580-5977 &bull; ebbersconstruction.com</strong>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
