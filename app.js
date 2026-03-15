@@ -198,6 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderBuildingPreview();
   setTodayDate();
 
+  // Estimate buttons
+  document.getElementById('btnCalcEstimate').addEventListener('click', calculateEstimate);
+  document.getElementById('btnPrintEstimate').addEventListener('click', () => window.print());
+
   // Listen for changes to update preview
   document.querySelectorAll('select, input').forEach(el => {
     el.addEventListener('change', () => renderBuildingPreview());
@@ -213,28 +217,46 @@ function setTodayDate() {
 
 // ─── NAVIGATION ───
 function initNavigation() {
-  const btns = document.querySelectorAll('.nav-btn');
+  const sidebarBtns = document.querySelectorAll('.sidebar .nav-btn');
+  const mobileBtns = document.querySelectorAll('.mobile-nav-btn');
   const panels = document.querySelectorAll('.panel');
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   const menuBtn = document.getElementById('mobileMenuBtn');
 
-  btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.panel;
-      btns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      panels.forEach(p => {
-        p.classList.remove('active');
-        if (p.id === 'panel-' + target) p.classList.add('active');
-      });
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
+  function switchPanel(target) {
+    // Update sidebar buttons
+    sidebarBtns.forEach(b => b.classList.remove('active'));
+    sidebarBtns.forEach(b => { if (b.dataset.panel === target) b.classList.add('active'); });
 
-      // Auto-calculate when switching to estimate
-      if (target === 'estimate') calculateEstimate();
-      if (target === 'preview') renderBuildingPreview();
+    // Update mobile nav buttons
+    mobileBtns.forEach(b => b.classList.remove('active'));
+    mobileBtns.forEach(b => { if (b.dataset.panel === target) b.classList.add('active'); });
+
+    // Switch panels
+    panels.forEach(p => {
+      p.classList.remove('active');
+      if (p.id === 'panel-' + target) p.classList.add('active');
     });
+
+    // Close mobile sidebar
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Auto-calculate when switching to estimate
+    if (target === 'estimate') calculateEstimate();
+    if (target === 'preview') renderBuildingPreview();
+  }
+
+  sidebarBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+  });
+
+  mobileBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
   });
 
   menuBtn.addEventListener('click', () => {
@@ -496,10 +518,7 @@ function initPreviewTabs() {
 }
 
 // ─── ESTIMATE BUTTON ───
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnCalcEstimate').addEventListener('click', calculateEstimate);
-  document.getElementById('btnPrintEstimate').addEventListener('click', () => window.print());
-});
+// (initialized in main DOMContentLoaded above)
 
 // ════════════════════════════════════════════════
 // HELPER: Get values
